@@ -43,8 +43,7 @@ All branches must follow a strict naming convention based on **Linear ticket nam
 ```plaintext
 noaheutz/cyb-41-swc
 ```
-
-You can copy this from linear:
+**Copy button for branch names in linear:**
 <img width="310" alt="Screenshot 2025-02-20 at 12 11 34" src="https://github.com/user-attachments/assets/64e01762-eb2a-4668-9924-3dd1d3bfa889" />
 
 
