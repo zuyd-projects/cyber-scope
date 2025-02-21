@@ -39,13 +39,13 @@ RUN composer install --no-dev --prefer-dist
 
 
 # BUILD FRONTEND
-FROM node:18 AS frontend
+# FROM node:18 AS frontend
 
-COPY --from=composer_base /opt/apps/laravel /opt/apps/laravel
+# COPY --from=composer_base /opt/apps/laravel /opt/apps/laravel
 
-WORKDIR /opt/apps/laravel
+# WORKDIR /opt/apps/laravel
 
-RUN npm install
+# RUN npm install
 # RUN npm install && \
 # npm run build
 
@@ -99,6 +99,7 @@ RUN apk add --virtual build-dependencies --no-cache ${PHPIZE_DEPS} openssl ca-ce
 
 COPY docker/fpm-entrypoint.sh /opt/apps/laravel/entrypoint.sh
 RUN chmod +x /opt/apps/laravel/entrypoint.sh
+RUN chown www-data:www-data /opt/apps/laravel/entrypoint.sh
 
 # Copy the php.ini file
 COPY docker/php.ini /usr/local/etc/php/php.ini
@@ -111,9 +112,10 @@ RUN chown www-data:www-data /etc/ssl/certs/cacert.pem
 USER  www-data
 
 COPY --from=composer_base --chown=www-data /opt/apps/laravel /opt/apps/laravel
-COPY --from=frontend /opt/apps/laravel/public /opt/apps/laravel/public
 
-ENTRYPOINT ["./entrypoint.sh"]
+RUN ls -la /opt/apps/laravel
+
+CMD ["sh", "/opt/apps/laravel/entrypoint.sh"]
 
 
 
@@ -125,7 +127,7 @@ WORKDIR /opt/apps/laravel
 
 COPY docker/nginx.conf /etc/nginx/templates/default.conf.template
 
-COPY --from=frontend /opt/apps/laravel/public /opt/apps/laravel/public
+COPY --from=composer_base /opt/apps/laravel/public /opt/apps/laravel/public
 
 
 
@@ -152,7 +154,6 @@ WORKDIR /opt/apps/laravel
 USER www-data
 
 COPY --from=composer_base --chown=www-data /opt/apps/laravel /opt/apps/laravel
-COPY --from=frontend --chown=www-data /opt/apps/laravel/public /opt/apps/laravel/public
 
 CMD ["php", "artisan", "queue:work", "--verbose", "--tries=3", "--timeout=90"]
 
