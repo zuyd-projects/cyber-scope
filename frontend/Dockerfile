@@ -1,30 +1,33 @@
+# Stage 1: Base image
 FROM node:20-alpine AS base
 WORKDIR /app
 COPY package*.json ./
 EXPOSE 3000
 
-FROM base AS builder
+# Stage 2: Dependencies
+FROM base AS dependencies
 RUN apk add --no-cache g++ make py3-pip libc6-compat
-WORKDIR /app
+RUN npm ci
+
+# Stage 3: Build
+FROM dependencies AS build
 COPY . .
-RUN npm install
 RUN npm run build
 
-
-FROM base AS production
+# Stage 4: Production
+FROM node:20-alpine AS production
 WORKDIR /app
 
 ENV NODE_ENV=production
-RUN npm ci
+
+# Copy only the necessary files for production
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY --from=build /app/.next ./.next
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/public ./public
 
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
 USER nextjs
 
-
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/public ./public
-
-CMD npm start
+CMD ["npm", "start"]
