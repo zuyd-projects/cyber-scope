@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35707.178
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CyberscopeAnalyzer", "CyberscopeAnalyzer\CyberscopeAnalyzer.csproj", "{64F7BA64-7BAB-410A-BD15-4100CF5845CE}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "CyberscopeAnalyzerSetup", "SetupCyberscopeAnalyzer\SetupCyberscopeAnalyzer.vdproj", "{ABB212EE-AA3B-48B7-A6A2-FEA7689078D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InstallerAction", "InstallerAction\InstallerAction.csproj", "{DE5F085F-A2D8-49EE-A6C1-35539A4F18BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CyberscopeAnalyzerService", "CyberscopeAnalyzerService\CyberscopeAnalyzerService.csproj", "{F9F539D0-04D0-42EB-8167-E27667418FD7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{64F7BA64-7BAB-410A-BD15-4100CF5845CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64F7BA64-7BAB-410A-BD15-4100CF5845CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64F7BA64-7BAB-410A-BD15-4100CF5845CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64F7BA64-7BAB-410A-BD15-4100CF5845CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABB212EE-AA3B-48B7-A6A2-FEA7689078D1}.Debug|Any CPU.ActiveCfg = Debug
+		{ABB212EE-AA3B-48B7-A6A2-FEA7689078D1}.Release|Any CPU.ActiveCfg = Release
+		{DE5F085F-A2D8-49EE-A6C1-35539A4F18BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE5F085F-A2D8-49EE-A6C1-35539A4F18BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE5F085F-A2D8-49EE-A6C1-35539A4F18BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE5F085F-A2D8-49EE-A6C1-35539A4F18BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9F539D0-04D0-42EB-8167-E27667418FD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9F539D0-04D0-42EB-8167-E27667418FD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9F539D0-04D0-42EB-8167-E27667418FD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9F539D0-04D0-42EB-8167-E27667418FD7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
