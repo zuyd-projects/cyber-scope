@@ -124,7 +124,7 @@
     <Compile Include="SecurityUtils.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Protobuf Include="LogService.proto" GrpcServices="Client" />
+    <Protobuf Include="Cyberscope.proto" GrpcServices="Client" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -19,7 +19,7 @@ namespace CyberscopeAnalyzer
         private static DataCollector instance = null;
         private static readonly object padlock = new object();
 
-        private static LogService.LogServiceClient logClient;
+        private static PacketService.PacketServiceClient packetClient;
         private ConcurrentDictionary<string, (PacketInfo packetInfo, long trafficSize)> entries = new ConcurrentDictionary<string, (PacketInfo packetInfo, long trafficSize)>();
         private static string deviceKey;
 
@@ -37,7 +37,7 @@ namespace CyberscopeAnalyzer
                 Credentials = ChannelCredentials.SecureSsl
             };
             var channel = GrpcChannel.ForAddress("https://grpc-cyberscope.rickokkersen.nl", channelOptions);
-            logClient = new LogService.LogServiceClient(channel);
+            packetClient = new PacketService.PacketServiceClient(channel);
         }
 
         public static DataCollector Instance
@@ -78,7 +78,7 @@ namespace CyberscopeAnalyzer
                 //Console.WriteLine($"Sending aggregated logs for {packetInfo.Key} with size {trafficSize}");
                 Console.WriteLine(entry.ToString());
 
-                var request = new LogRequest
+                var request = new PacketRequest
                 {
                     DeviceId = deviceKey,
                     SourceIp = entry.Value.packetInfo.SourceIp,
@@ -96,7 +96,7 @@ namespace CyberscopeAnalyzer
 
                 try
                 {
-                    var response = await logClient.SendLogAsync(request);
+                    var response = await packetClient.SendPacketAsync(request);
                 }
                 catch (RpcException e)
                 {

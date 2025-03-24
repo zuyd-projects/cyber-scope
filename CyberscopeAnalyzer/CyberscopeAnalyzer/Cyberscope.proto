@@ -1,13 +1,13 @@
 syntax = "proto3";
 
-package logs;
+// package logs;
 option csharp_namespace = "CyberscopeAnalyzer";
 
-service LogService {
-    rpc SendLog (LogRequest) returns (LogResponse);
+service PacketService {
+    rpc SendPacket (PacketRequest) returns (StatusResponse);
 }
 
-message LogRequest {
+message PacketRequest {
     string device_id = 1;
     string source_ip = 2;
     string destination_ip = 3;
@@ -22,7 +22,7 @@ message LogRequest {
     string file_hash = 12;
 }
 
-message LogResponse {
+message StatusResponse {
     string status = 1;
 }
 
