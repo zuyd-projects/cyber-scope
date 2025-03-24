@@ -8,10 +8,12 @@ import (
 	pb "ssh-log-monitor/proto"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 func SendLog(serverAddr string, geoData *geo.GeoData) error {
-	conn, err := grpc.Dial(serverAddr, grpc.WithInsecure())
+	creds := credentials.NewClientTLSFromCert(nil, "")
+	conn, err := grpc.Dial(serverAddr, grpc.WithTransportCredentials(creds))
 	if err != nil {
 		return err
 	}

@@ -13,7 +13,7 @@ import (
 const (
 	logPath     = "/var/log/auth.log"
 	offsetPath  = "offset.txt"
-	grpcAddress = "https://grpc-cyberscope.rickokkersen.nl"
+	grpcAddress = "grpc-cyberscope.rickokkersen.nl:443"
 )
 
 func main() {
