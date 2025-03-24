@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package logs;
+option go_package = "ssh-log-monitor/proto;logs";
+
+service LogService {
+    rpc SendLinuxLog (LinuxLogRequest) returns (StatusResponse);
+}
+
+message LinuxLogRequest {
+    string device_id = 1;
+    string source_ip = 2;
+    string timestamp = 3;
+    string process_name = 4;
+}
+
+message StatusResponse {
+    string status = 1;
+}

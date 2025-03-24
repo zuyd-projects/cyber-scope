@@ -21,19 +21,11 @@ func SendLog(serverAddr string, geoData *geo.GeoData) error {
 
 	client := pb.NewLogServiceClient(conn)
 
-	_, err = client.SendLog(context.Background(), &pb.LogRequest{
-		DeviceId:        "ubuntu-vm",
-		SourceIp:        geoData.Query,
-		DestinationIp:   "",
-		SourcePort:      22,
-		DestinationPort: 0,
-		Size:            0,
-		Timestamp:       time.Now().Format(time.RFC3339),
-		Type:            pb.PacketType_TCP,
-		ProcessId:       0,
-		ProcessName:     "sshd",
-		ExecutablePath:  "/usr/sbin/sshd",
-		FileHash:        "",
+	_, err = client.SendLinuxLog(context.Background(), &pb.LinuxLogRequest{
+		DeviceId:    "ubuntu-vm",
+		SourceIp:    geoData.Query,
+		Timestamp:   time.Now().Format(time.RFC3339),
+		ProcessName: "sshd",
 	})
 	return err
 }

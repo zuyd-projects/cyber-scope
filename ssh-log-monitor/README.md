@@ -56,23 +56,23 @@ go mod tidy
 ### 3. Generate gRPC code (if not yet done)
 
 ```bash
-protoc --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:. proto/logs.proto
+protoc --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:. proto/cyberscope.proto
 ```
 
-Make sure the `proto/` folder contains `logs.pb.go` and `logs_grpc.pb.go`.
+Make sure the `proto/` folder contains `cyberscope.pb.go` and `cyberscope_grpc.pb.go`.
 
 ---
 
 ## 🛠 Building the Binary
 
-### ✅ For macOS (local dev test):
+### ✅ For macOS (local dev test)
 
 ```bash
 go build -o ssh-monitor
 ./ssh-monitor
 ```
 
-### ✅ For Linux server:
+### ✅ For Linux server
 
 ```bash
 GOOS=linux GOARCH=amd64 go build -o ssh-monitor
