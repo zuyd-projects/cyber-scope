@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"ssh-log-monitor/geo"
 	"ssh-log-monitor/grpcclient"
 	"ssh-log-monitor/parser"
 	"ssh-log-monitor/state"
@@ -34,15 +33,9 @@ func main() {
 	}
 
 	for _, ip := range ips {
-		geoInfo, err := geo.LookupIP(ip)
-		if err != nil {
-			log.Printf("Failed to lookup IP %s: %v", ip, err)
-			continue
-		}
+		log.Printf("Sending log for IP %s", ip)
 
-		log.Printf("Sending log for IP %s from %s/%s", geoInfo.Query, geoInfo.Country, geoInfo.City)
-
-		if err := grpcclient.SendLog(grpcAddress, geoInfo); err != nil {
+		if err := grpcclient.SendLog(grpcAddress, ip); err != nil {
 			log.Printf("gRPC send failed: %v", err)
 		}
 	}
