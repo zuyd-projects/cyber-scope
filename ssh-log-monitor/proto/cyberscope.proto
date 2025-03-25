@@ -1,10 +1,14 @@
 syntax = "proto3";
 
-package logs;
-option go_package = "ssh-log-monitor/proto;logs";
-
 service LogService {
     rpc SendLinuxLog (LinuxLogRequest) returns (StatusResponse);
+    rpc SendWindowsLog (WindowsLogRequest) returns (StatusResponse);
+}
+
+option go_package = "ssh-log-monitor/proto;logs";
+
+service PacketService {
+    rpc SendPacket (PacketRequest) returns (StatusResponse);
 }
 
 message LinuxLogRequest {
@@ -14,6 +18,34 @@ message LinuxLogRequest {
     string process_name = 4;
 }
 
+// TODO: Set correct fields for WindowsLogRequest
+message WindowsLogRequest {
+    string device_id = 1;
+    string source_ip = 2;
+    string timestamp = 3;
+    string process_name = 4;
+}
+
+message PacketRequest {
+    string device_id = 1;
+    string source_ip = 2;
+    string destination_ip = 3;
+    int32 source_port = 4;
+    int32 destination_port = 5;
+    int32 size = 6;
+    string timestamp = 7;
+    PacketType type = 8;
+    int32 process_id = 9;
+    string process_name = 10;
+    string executable_path = 11;
+    string file_hash = 12;
+}
+
 message StatusResponse {
     string status = 1;
+}
+
+enum PacketType {
+    TCP = 0;
+    UDP = 1;
 }

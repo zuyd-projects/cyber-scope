@@ -28,7 +28,6 @@ ssh-log-monitor/
 ├── go.mod / go.sum  # Go module files
 ```
 
-
 ## 🚀 Quick Install (no build needed)
 
 You can install the binary and set up everything (cron, logs, offset) in **one command**:
@@ -39,10 +38,10 @@ curl -sSL https://raw.githubusercontent.com/zuyd-projects/cyber-scope/main/ssh-l
 
 This will:
 
-- Download the latest `ssh-monitor` binary from GitHub Releases  
-- Install it to `/usr/local/bin/ssh-monitor`  
-- Set up a cron job to run it every 5 minutes  
-- Log output to `/var/log/ssh-monitor.log`  
+- Download the latest `ssh-monitor` binary from GitHub Releases
+- Install it to `/usr/local/bin/ssh-monitor`
+- Set up a cron job to run it every 5 minutes
+- Log output to `/var/log/ssh-monitor.log`
 - Track progress in `/var/lib/ssh-monitor/offset.txt`
 
 ---
@@ -74,6 +73,12 @@ protoc --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:. pr
 
 ```bash
 GOOS=linux GOARCH=amd64 go build -o ssh-monitor
+```
+
+#### Send the binary to your server
+
+```bash
+ scp ssh-monitor cyberscope@ubuntu.rickokkersen.nl:/home/cyberscope/
 ```
 
 #### For macOS (local testing)
