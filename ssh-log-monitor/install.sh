@@ -10,15 +10,12 @@ CRON_LINE="*/5 * * * * $INSTALL_PATH >> $LOG_PATH 2>&1"
 
 echo "📦 Installing SSH Monitor..."
 
-# 1. Copy binary
-if [ ! -f "./$BINARY_NAME" ]; then
-  echo "❌ Binary '$BINARY_NAME' not found in current directory!"
-  exit 1
-fi
-
-sudo cp ./$BINARY_NAME $INSTALL_PATH
-sudo chmod +x $INSTALL_PATH
-echo "✅ Copied binary to $INSTALL_PATH"
+# 1. Download binary from GitHub Release
+echo "⬇️ Downloading binary from GitHub..."
+curl -Lo "$BINARY_NAME" https://github.com/zuyd-projects/cyber-scope/releases/download/ssh-monitor/ssh-monitor
+chmod +x "$BINARY_NAME"
+sudo mv "$BINARY_NAME" "$INSTALL_PATH"
+echo "✅ Installed binary to $INSTALL_PATH"
 
 # 2. Create offset storage dir
 sudo mkdir -p $(dirname "$OFFSET_PATH")

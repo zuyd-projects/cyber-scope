@@ -1,17 +1,17 @@
 # SSH Log Monitor (gRPC + Go)
 
-A Linux-compatible Go application that monitors `/var/log/auth.log` for SSH login attempts, geolocates the source IPs, and sends the results to a gRPC server.
+A Linux-compatible Go application that monitors `/var/log/auth.log` for SSH login attempts and sends the results to a gRPC server.
 
 ---
 
 ## 📦 Features
 
-- Monitors SSH failed login attempts in `/var/log/auth.log`
-- Extracts attacker IP addresses
-- Geolocates IPs using `ip-api.com`
-- Sends structured logs to a gRPC server
-- Remembers the last processed line via an offset file
-- Can be run manually, as a cron job, or as a background service
+- Monitors SSH login attempts in `/var/log/auth.log`
+- Extracts source IP addresses (from failed or accepted attempts)
+- Sends structured logs to a gRPC backend via TLS
+- Tracks last-read log position using an offset file
+- Lightweight and cron-compatible
+- Installable in 1 command using `curl`
 
 ---
 
@@ -19,103 +19,13 @@ A Linux-compatible Go application that monitors `/var/log/auth.log` for SSH logi
 
 ```
 ssh-log-monitor/
-├── geo/             # Geolocation lookup code
 ├── grpcclient/      # gRPC client logic
 ├── parser/          # SSH log parsing logic
 ├── state/           # Offset tracking
 ├── proto/           # Proto definition and generated gRPC files
 ├── main.go          # Main application entry point
-├── go.mod / go.sum  # Module definitions
-```
-
----
-
-## 🚀 Requirements
-
-- Go 1.20+ (recommended)
-- `protoc` compiler
-- Ubuntu (or any Linux system with `/var/log/auth.log`)
-
----
-
-## 🛠 Setup Instructions
-
-### 1. Clone the repo and enter the folder
-
-```bash
-git clone https://github.com/zuyd-projects/cyber-scope/ssh-log-monitor.git
-cd ssh-log-monitor
-```
-
-### 2. Install dependencies
-
-```bash
-go mod tidy
-```
-
-### 3. Generate gRPC code (if not yet done)
-
-```bash
-protoc --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:. proto/cyberscope.proto
-```
-
-Make sure the `proto/` folder contains `cyberscope.pb.go` and `cyberscope_grpc.pb.go`.
-
----
-
-## 🛠 Building the Binary
-
-### ✅ For macOS (local dev test)
-
-```bash
-go build -o ssh-monitor
-./ssh-monitor
-```
-
-### ✅ For Linux server
-
-```bash
-GOOS=linux GOARCH=amd64 go build -o ssh-monitor
-```
-
-Copy to your Linux system:
-
-```bash
-scp ssh-monitor user@your-server:/home/user/
-```
-
----
-
-## ⚙️ Running the App
-
-```bash
-sudo ./ssh-monitor
-```
-
-It will:
-
-- Read `/var/log/auth.log`
-- Skip lines it already processed
-- Geolocate any new IPs found
-- Send them to your gRPC server
-- Track progress in `offset.txt`
-
----
-
-## 💡 gRPC Server Config (Expected)
-
-Your gRPC server should expose:
-
-```proto
-service LogService {
-    rpc SendLog (LogRequest) returns (LogResponse);
-}
-```
-
-You must replace this line in `main.go` with your server IP:
-
-```go
-const grpcAddress = "https://grpc-cyberscope.rickokkersen.nl"
+├── install.sh       # Auto-install script
+├── go.mod / go.sum  # Go module files
 ```
 
 ---
@@ -135,42 +45,88 @@ ssh cyberscope@ubuntu.rickokkersen.nl
 sudo ./ssh-monitor
 ```
 
-## 🛡️ Optional: Run as systemd service
+## 🚀 Quick Install (no build needed)
 
-Create a systemd unit file `/etc/systemd/system/ssh-monitor.service`:
-
-```ini
-[Unit]
-Description=SSH Monitor
-After=network.target
-
-[Service]
-ExecStart=/home/user/ssh-monitor
-Restart=always
-User=root
-WorkingDirectory=/home/user
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Then:
+You can install the binary and set up everything (cron, logs, offset) in **one command**:
 
 ```bash
-sudo systemctl daemon-reexec
-sudo systemctl enable --now ssh-monitor
+curl -sSL https://raw.githubusercontent.com/zuyd-projects/cyber-scope/main/ssh-log-monitor/install.sh | bash
+```
+
+This will:
+
+- Download the latest `ssh-monitor` binary from GitHub Releases  
+- Install it to `/usr/local/bin/ssh-monitor`  
+- Set up a cron job to run it every 5 minutes  
+- Log output to `/var/log/ssh-monitor.log`  
+- Track progress in `/var/lib/ssh-monitor/offset.txt`
+
+---
+
+## 🛠 Manual Build Instructions (Dev)
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/zuyd-projects/cyber-scope.git
+cd cyber-scope/ssh-log-monitor
+```
+
+### 2. Install dependencies
+
+```bash
+go mod tidy
+```
+
+### 3. Generate gRPC code (if needed)
+
+```bash
+protoc --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:. proto/cyberscope.proto
+```
+
+### 4. Build for your platform
+
+#### For Linux (server)
+
+```bash
+GOOS=linux GOARCH=amd64 go build -o ssh-monitor
+```
+
+#### For macOS (local testing)
+
+```bash
+go build -o ssh-monitor
 ```
 
 ---
 
-## 🧪 Testing
-
-You can simulate a failed SSH login (from another machine or manually) and check if it gets picked up and sent to your gRPC backend.
-
-Also check logs:
+## ⚙️ Manual Execution
 
 ```bash
-journalctl -u ssh-monitor.service -f
+sudo ./ssh-monitor
+```
+
+It will:
+
+- Parse `/var/log/auth.log`
+- Skip previously seen lines (based on offset)
+- Extract IPs from SSH login attempts
+- Send logs to the gRPC server defined in `main.go`
+
+---
+
+## 🕒 Automatisch uitvoeren met Cron
+
+Om de SSH-monitor automatisch elke 5 minuten te laten draaien, wordt tijdens installatie deze cronregel toegevoegd:
+
+```cron
+*/5 * * * * /usr/local/bin/ssh-monitor >> /var/log/ssh-monitor.log 2>&1
+```
+
+Bekijk live de logoutput met:
+
+```bash
+tail -f /var/log/ssh-monitor.log
 ```
 
 ---
@@ -183,4 +139,4 @@ MIT — free for commercial and personal use.
 
 ## ✨ Credits
 
-- Built with ❤️ using Go, gRPC, and `ip-api.com
+- Built with ❤️ using Go, gRPC, and system-level Linux logs.
