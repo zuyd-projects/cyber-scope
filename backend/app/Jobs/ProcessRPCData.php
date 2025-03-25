@@ -62,10 +62,10 @@ class ProcessRPCData implements ShouldQueue
             'destination_port' => $this->data['destinationPort'],
             'size' => $this->data['size'] ?? 0,
             'captured_at' => $this->data['timestamp'],
-            'process_id' => $this->data['processId'],
-            'process_name' => $this->data['processName'],
-            'process_path' => $this->data['executablePath'],
-            'process_file_hash' => $this->data['fileHash']
+            'process_id' => $this->data['processId'] ?? null,
+            'process_name' => $this->data['processName'] ?? null,
+            'process_path' => $this->data['executablePath'] ?? null,
+            'process_file_hash' => $this->data['fileHash'] ?? null
         ]);
     }
 }
