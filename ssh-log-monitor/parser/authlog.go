@@ -30,7 +30,7 @@ func ParseAuthLog(path string, lastLine int64) ([]string, int64, error) {
 		}
 
 		line := scanner.Text()
-		fmt.Println("LINE:", line) // Debug print
+		// fmt.Println("LINE:", line) // Debug print
 
 		match := sshRegex.FindStringSubmatch(line)
 		if len(match) == 3 {
