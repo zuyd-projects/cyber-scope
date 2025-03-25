@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Jobs;
+
+use App\Models\Device;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class ProcessRPCData implements ShouldQueue
+{
+    use Queueable;
+
+    public array $data;
+    /**
+     * Create a new job instance.
+     */
+    public function __construct(public string $source, string $data)
+    {
+        $decodedData = json_decode($data, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $this->data = $decodedData;
+        } else {
+            $this->data = [];
+            Log::error("Failed to decode JSON data: " . json_last_error_msg());
+            // Do not run the job if the data is invalid
+            $this->release(0);
+        }
+    }
+
+    /**
+     * Execute the job.
+     */
+    public function handle(): void
+    {
+        switch ($this->source) {
+            case "packet":
+                $this->processPacket();
+                break;
+            // case "device":
+            //     $this->processDevice();
+            //     break;
+            default:
+                Log::error("Unknown source: {$this->source}");
+                Log::info($this->data);
+                break;
+        }
+    }
+
+    private function processPacket(): void
+    {
+        $device = Device::firstOrCreate([
+            'key' => $this->data['deviceId'],
+            'name' => $this->data['deviceId']
+        ]);
+
+        $device->packets()->create([
+            'source_address_id' => $this->data['sourceIp'],
+            'destination_address_id' => $this->data['destinationIp'],
+            // 'protocol' => $this->data['protocol'],
+            'source_port' => $this->data['sourcePort'],
+            'destination_port' => $this->data['destinationPort'],
+            'size' => $this->data['size'] ?? 0,
+            'captured_at' => $this->data['timestamp'],
+            'process_id' => $this->data['processId'],
+            'process_name' => $this->data['processName'],
+            'process_path' => $this->data['executablePath'],
+            'process_file_hash' => $this->data['fileHash']
+        ]);
+    }
+}
