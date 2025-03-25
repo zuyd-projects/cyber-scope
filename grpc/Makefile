@@ -23,6 +23,7 @@ dep: docker deploy
 # Commands
 deploy: 
 	kubectl rollout restart deployment cyberscope-grpc --namespace=laravel-applications
+	kubectl rollout restart deployment cyberscope-grpcdev --namespace=laravel-applications
 
 docker: docker-build docker-push
 
