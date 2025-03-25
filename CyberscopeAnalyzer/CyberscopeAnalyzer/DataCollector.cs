@@ -26,8 +26,10 @@ namespace CyberscopeAnalyzer
         private DataCollector()
         {
             // Set device key
-            RegistryKey registryKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\CyberscopeAnalyzer");
-            deviceKey = registryKey.GetValue("DeviceKey").ToString();
+            //RegistryKey registryKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\CyberscopeAnalyzer");
+            //deviceKey = registryKey.GetValue("DeviceKey").ToString();
+            // Set the device key to be the Hostname
+            deviceKey = Environment.MachineName;
 
             // Initialize the gRPC client
             var httpHandler = new StandardSocketsHttpHandler();
@@ -86,7 +88,7 @@ namespace CyberscopeAnalyzer
                     SourcePort = entry.Value.packetInfo.SourcePort,
                     DestinationPort = entry.Value.packetInfo.DestinationPort,
                     Size = (int)entry.Value.trafficSize,
-                    Timestamp = entry.Value.packetInfo.Timestamp.ToString(),
+                    Timestamp = entry.Value.packetInfo.Timestamp.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                     Type = entry.Value.packetInfo.Type,
                     ProcessId = entry.Value.packetInfo.ProcessDetails?.ProcessId ?? 0,
                     ProcessName = entry.Value.packetInfo.ProcessDetails?.ProcessName ?? "",
