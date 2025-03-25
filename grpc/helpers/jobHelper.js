@@ -10,17 +10,17 @@ const db = await mysql.createPool({
     database: process.env.DB_DATABASE,
 });
 
-function serializeCommand(data) {
+function serializeCommand(source, data) {
     let start = 'O:23:"App\\Jobs\\ProcessRPCData"';
     const serializedCommand = serialize({
         data: data,
-        source: "test"
+        source: source
     });
     // Remove first character and append to default string
     return start + serializedCommand.slice(1);
 }
 
-function createJobPayload(data) {
+function createJobPayload(source, data) {
     return {
         uuid: uuidv4(),
         displayName: "App\\Jobs\\ProcessRPCData",
@@ -33,13 +33,13 @@ function createJobPayload(data) {
         retryUntil: null,
         data: {
             commandName: "App\\Jobs\\ProcessRPCData",
-            command: serializeCommand(data),
+            command: serializeCommand(source, data),
         }
     };
 }
 
 export async function insertJob(source, data) {
-    const payload = JSON.stringify(createJobPayload(data));
+    const payload = JSON.stringify(createJobPayload(source, data));
 
     await db.execute(
         "INSERT INTO jobs (queue, payload, attempts, reserved_at, available_at, created_at) VALUES (?, ?, ?, ?, ?, ?)",
