@@ -28,22 +28,6 @@ ssh-log-monitor/
 ├── go.mod / go.sum  # Go module files
 ```
 
----
-
-## 📌 Offset Tracking
-
-A file called `offset.txt` is written in the same directory to keep track of the last-read line of the log. If deleted, parsing restarts from the top.
-
----
-
-## Build and use new version
-
-```bash
-GOOS=linux GOARCH=amd64 go build -o ssh-monitor
-scp ssh-monitor cyberscope@ubuntu.rickokkersen.nl:/home/cyberscope/
-ssh cyberscope@ubuntu.rickokkersen.nl
-sudo ./ssh-monitor
-```
 
 ## 🚀 Quick Install (no build needed)
 
