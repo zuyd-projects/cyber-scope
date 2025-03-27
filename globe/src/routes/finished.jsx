@@ -62,7 +62,7 @@ const Page = () => {
         pointAltitude={0.01}
         pointRadius={0.2}
         pointResolution={5}
-        pointColor={() => '#eed31f'}
+        pointColor={() => '#eed31f00'}
         arcsData={arcsData}
         arcAltitudeAutoScale={0.3}
         arcColor='color'
