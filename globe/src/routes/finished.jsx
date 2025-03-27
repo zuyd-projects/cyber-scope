@@ -18,10 +18,10 @@ const arcsData = sliceData.map(() => {
   return {
     startLat: sliceData[randStart].lat,
     startLng: sliceData[randStart].lng,
-    endLat: sliceData[randEnd].lat,
-    endLng: sliceData[randEnd].lng,
+    endLat: 52.0454689,
+    endLng: 5.358608,
     time: randTime,
-    color: ['#ffffff00', '#faf7e6', '#ffffff00'],
+    color: ['#ffffff00', '#F00', '#ffffff00'],
   };
 });
 
@@ -30,12 +30,12 @@ const Page = () => {
 
   const globeReady = () => {
     if (globeRef.current) {
-      globeRef.current.controls().autoRotate = true;
-      globeRef.current.controls().enableZoom = false;
+      globeRef.current.controls().autoRotate = false;
+      globeRef.current.controls().enableZoom = true;
 
       globeRef.current.pointOfView({
-        lat: 19.054339351561637,
-        lng: -50.421161072148465,
+        lat: 52.0454689,
+        lng: 5.3586082,
         altitude: 1.8,
       });
     }
