@@ -1,27 +1,38 @@
-import { useRef } from 'react';
-import Globe from 'react-globe.gl';
-import * as THREE from 'three';
-import * as topojson from 'topojson-client';
+import { useRef } from "react";
+import Globe from "react-globe.gl";
+import * as THREE from "three";
 
-import landTopology from '../assets/land_10m.json';
-import pointsData from '../assets/random-locations.json';
-import texture from '../assets/texture.jpg';
+import pointsData from "../assets/random-locations.json";
+import texture from "../assets/earth-dark.jpg";
 
-const min = 1000;
-const max = 4000;
-const sliceData = pointsData.sort(() => (Math.random() > 0.5 ? 1 : -1)).slice(20, 90);
+const min = 4000;
+const max = 8000;
+const sliceData = pointsData
+  .sort(() => (Math.random() > 0.5 ? 1 : -1))
+  .slice(20, 90);
 
+// Hostname & IP generators
+const generateHostname = () =>
+  `device-${Math.floor(Math.random() * 1000)}.local`;
+const generateIP = () =>
+  `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(
+    Math.random() * 255
+  )}.${Math.floor(Math.random() * 255)}`;
+
+// Arcs: attacker ➜ device
 const arcsData = sliceData.map(() => {
-  const randStart = Math.floor(Math.random() * sliceData.length);
-  const randEnd = Math.floor(Math.random() * sliceData.length);
+  const randSource = Math.floor(Math.random() * sliceData.length);
   const randTime = Math.floor(Math.random() * (max - min + 1) + min);
+
   return {
-    startLat: sliceData[randStart].lat,
-    startLng: sliceData[randStart].lng,
+    startLat: sliceData[randSource].lat,
+    startLng: sliceData[randSource].lng,
     endLat: 52.0454689,
     endLng: 5.358608,
     time: randTime,
-    color: ['#ffffff00', '#F00', '#ffffff00'],
+    hostname: generateHostname(),
+    attackerIP: generateIP(),
+    color: ["#00ff00aa","#ffff00aa","#ff0000aa",], // red ➜ yellow ➜ green
   };
 });
 
@@ -42,49 +53,46 @@ const Page = () => {
   };
 
   return (
-    <div className='cursor-move'>
+    <div className="cursor-move">
       <Globe
         ref={globeRef}
+        globeImageUrl={texture}
         onGlobeReady={globeReady}
-        backgroundColor='#08070e'
+        backgroundColor="#08070e"
         rendererConfig={{ antialias: true, alpha: true }}
         globeMaterial={
           new THREE.MeshPhongMaterial({
-            color: '#1a2033',
+            color: "#1a2033",
             opacity: 0.95,
             transparent: true,
           })
         }
-        atmosphereColor='#5784a7'
+        atmosphereColor="#5784a7"
         atmosphereAltitude={0.5}
+        // Points
         pointsMerge={true}
         pointsData={pointsData}
-        pointAltitude={0.01}
+        pointAltitude={0.025}
         pointRadius={0.2}
         pointResolution={5}
-        pointColor={() => '#eed31f00'}
+        pointColor={() => "#eed31f00"}
+        pointLabel={"name"}
+        // Arcs: Attacks
         arcsData={arcsData}
         arcAltitudeAutoScale={0.3}
-        arcColor='color'
+        arcColor="color"
         arcStroke={0.5}
-        arcDashGap={2}
-        arcDashAnimateTime='time'
-        polygonsData={topojson.feature(landTopology, landTopology.objects.land).features}
-        polygonSideColor={() => '#00000000'}
-        polygonCapMaterial={
-          new THREE.MeshPhongMaterial({
-            color: '#49ac8f',
-            side: THREE.DoubleSide,
-            map: new THREE.TextureLoader().load(texture),
-          })
-        }
-        polygonAltitude={0.01}
+        arcDashLength={0.3}
+        arcDashGap={4}
+        arcDashAnimateTime="time"
+        arcLabel={(d) => `${d.attackerIP} ➜ ${d.hostname}`}
+        //stars
         customLayerData={[...Array(500).keys()].map(() => ({
           lat: (Math.random() - 1) * 360,
           lng: (Math.random() - 1) * 360,
           altitude: Math.random() * 2,
           size: Math.random() * 0.4,
-          color: '#faadfd',
+          color: '#e3e3e3',
         }))}
         customThreeObject={(sliceData) => {
           const { size, color } = sliceData;
@@ -94,6 +102,7 @@ const Page = () => {
           const { lat, lng, altitude } = sliceData;
           return Object.assign(obj.position, globeRef.current?.getCoords(lat, lng, altitude));
         }}
+
       />
     </div>
   );
