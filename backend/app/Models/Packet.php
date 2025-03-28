@@ -33,12 +33,12 @@ class Packet extends Model
         return $this->belongsTo(Device::class);
     }
 
-    public function sourceIP()
+    public function sourceIp()
     {
         return $this->belongsTo(IPAddress::class, 'source_address_id');
     }
 
-    public function destinationIP()
+    public function destinationIp()
     {
         return $this->belongsTo(IPAddress::class, 'destination_address_id');
     }
