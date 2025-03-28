@@ -155,6 +155,10 @@ USER www-data
 
 COPY --from=composer_base --chown=www-data /opt/apps/laravel /opt/apps/laravel
 
+# Download file from URL and save it to a specific location
+RUN mkdir -p /opt/apps/laravel/storage/app/ip2location && \
+    ln -s /opt/apps/laravel/storage/app/ip2location /opt/apps/laravel/database/ip2location
+
 CMD ["php", "artisan", "queue:work", "--verbose", "--tries=3", "--timeout=90"]
 
 

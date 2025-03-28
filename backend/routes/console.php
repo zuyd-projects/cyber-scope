@@ -11,7 +11,7 @@ Artisan::command('app:fetch-ip2locations', function () {
     $this->comment('Downloading database...');
 
     $url = 'https://cdn.rickokkersen.nl/IP2LOCATION.BIN';
-    $destinationPath = 'database/ip2location/IP2LOCATION.BIN';
+    $destinationPath = storage_path('app/ip2location/IP2LOCATION.BIN');
 
     // Ensure the destination directory exists
     if (!is_dir(dirname($destinationPath))) {
