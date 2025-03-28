@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strings"
 )
 
 type SSHLogEntry struct {
@@ -15,8 +14,9 @@ type SSHLogEntry struct {
 
 // sshRegex matches lines like:
 // 2025-03-27T14:24:14.101674+01:00 cyberscope-Standard-PC-i440FX-PIIX-1996 sshd[43460]: Connection closed by invalid user noaheutz 83.82.26.140 port 63761 [preauth]
-var sshRegex = regexp.MustCompile(`sshd$begin:math:display$\\d+$end:math:display$: (Accepted|Failed) password for .* from ([0-9.]+) port`)
-var repeatedRegex = regexp.MustCompile(`message repeated \d+ times: \[ Failed password for .* from ([0-9.]+) port`)
+var sshRegex = regexp.MustCompile(`sshd\[\d+\]: (Accepted|Failed) password for .* from ([0-9.]+) port`)
+var repeatedRegex = regexp.MustCompile(`message repeated \d+ times: \[.*from ([0-9.]+) port`)
+var timestampRegex = regexp.MustCompile(`^([\d\-T:+\.]+)`)
 
 func ParseAuthLog(path string, lastLine int64) ([]SSHLogEntry, int64, error) {
 	file, err := os.Open(path)
@@ -37,7 +37,11 @@ func ParseAuthLog(path string, lastLine int64) ([]SSHLogEntry, int64, error) {
 
 		line := scanner.Text()
 
-		timestamp := strings.SplitN(line, " ", 2)[0]
+		timestampMatch := timestampRegex.FindStringSubmatch(line)
+		timestamp := ""
+		if len(timestampMatch) > 1 {
+			timestamp = timestampMatch[1] // Only the timestamp part
+		}
 
 		match := sshRegex.FindStringSubmatch(line)
 		if len(match) == 3 {
