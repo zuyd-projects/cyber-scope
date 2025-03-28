@@ -5,21 +5,27 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 )
 
+type SSHLogEntry struct {
+	IP        string
+	Timestamp string
+}
+
 // sshRegex matches lines like:
-// "sshd[12345]: Failed password for <user> from 1.2.3.4 port 12345 ssh2"
+// 2025-03-27T14:24:14.101674+01:00 cyberscope-Standard-PC-i440FX-PIIX-1996 sshd[43460]: Connection closed by invalid user noaheutz 83.82.26.140 port 63761 [preauth]
 var sshRegex = regexp.MustCompile(`sshd$begin:math:display$\\d+$end:math:display$: (Accepted|Failed) password for .* from ([0-9.]+) port`)
 var repeatedRegex = regexp.MustCompile(`message repeated \d+ times: \[ Failed password for .* from ([0-9.]+) port`)
 
-func ParseAuthLog(path string, lastLine int64) ([]string, int64, error) {
+func ParseAuthLog(path string, lastLine int64) ([]SSHLogEntry, int64, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, lastLine, err
 	}
 	defer file.Close()
 
-	var ips []string
+	var entries []SSHLogEntry
 	scanner := bufio.NewScanner(file)
 	var currentLine int64 = 0
 
@@ -30,20 +36,24 @@ func ParseAuthLog(path string, lastLine int64) ([]string, int64, error) {
 		}
 
 		line := scanner.Text()
-		// fmt.Println("LINE:", line) // Debug print
+
+		timestamp := strings.SplitN(line, " ", 2)[0]
 
 		match := sshRegex.FindStringSubmatch(line)
 		if len(match) == 3 {
-			fmt.Println("🎯 MATCH FOUND:", match[2])
-			ips = append(ips, match[2]) // [2] is het IP-adres
+			ip := match[2]
+			fmt.Println("🎯 MATCH FOUND:", ip, "at", timestamp)
+			entries = append(entries, SSHLogEntry{IP: ip, Timestamp: timestamp})
+			continue
 		}
 
 		match = repeatedRegex.FindStringSubmatch(line)
 		if len(match) == 2 {
-			fmt.Println("🔁 REPEATED MATCH FOUND:", match[1])
-			ips = append(ips, match[1])
+			ip := match[1]
+			fmt.Println("🔁 REPEATED MATCH FOUND:", ip, "at", timestamp)
+			entries = append(entries, SSHLogEntry{IP: ip, Timestamp: timestamp})
 		}
 	}
 
-	return ips, currentLine, scanner.Err()
+	return entries, currentLine, scanner.Err()
 }

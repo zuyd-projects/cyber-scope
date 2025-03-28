@@ -3,7 +3,6 @@ package grpcclient
 import (
 	"context"
 	"os"
-	"time"
 
 	pb "ssh-log-monitor/proto"
 
@@ -11,7 +10,7 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-func SendLog(serverAddr string, sourceIp string) error {
+func SendLog(serverAddr string, sourceIp string, timestamp string) error {
 	creds := credentials.NewClientTLSFromCert(nil, "")
 	conn, err := grpc.Dial(serverAddr, grpc.WithTransportCredentials(creds))
 	if err != nil {
@@ -29,7 +28,7 @@ func SendLog(serverAddr string, sourceIp string) error {
 	_, err = client.SendLinuxLog(context.Background(), &pb.LinuxLogRequest{
 		DeviceId:    hostname,
 		SourceIp:    sourceIp,
-		Timestamp:   time.Now().Format(time.RFC3339),
+		Timestamp:   timestamp,
 		ProcessName: "sshd",
 	})
 	return err

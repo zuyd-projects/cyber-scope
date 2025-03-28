@@ -21,21 +21,20 @@ func main() {
 		log.Fatalf("Failed to read offset: %v", err)
 	}
 
-	ips, newOffset, err := parser.ParseAuthLog(logPath, offset)
+	entries, newOffset, err := parser.ParseAuthLog(logPath, offset)
 	if err != nil {
 		log.Fatalf("Failed to parse auth.log: %v", err)
 	}
 
-	// 👇 DEBUG
-	fmt.Printf("Scanned auth.log – Found %d IPs | New offset: %d\n", len(ips), newOffset)
-	for _, ip := range ips {
-		fmt.Println("➡️ Found SSH login attempt from IP:", ip)
+	fmt.Printf("Scanned auth.log – Found %d entries | New offset: %d\n", len(entries), newOffset)
+	for _, entry := range entries {
+		fmt.Printf("➡️ Found SSH login attempt from IP %s at %s\n", entry.IP, entry.Timestamp)
 	}
 
-	for _, ip := range ips {
-		log.Printf("Sending log for IP %s", ip)
+	for _, entry := range entries {
+		log.Printf("Sending log for IP %s at %s", entry.IP, entry.Timestamp)
 
-		if err := grpcclient.SendLog(grpcAddress, ip); err != nil {
+		if err := grpcclient.SendLog(grpcAddress, entry.IP, entry.Timestamp); err != nil {
 			log.Printf("gRPC send failed: %v", err)
 		}
 	}
