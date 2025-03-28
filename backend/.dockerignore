@@ -3,3 +3,4 @@
 /public/build
 .env
 /public/hot
+/database/ip2location
