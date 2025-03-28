@@ -37,9 +37,9 @@ class ProcessRPCData implements ShouldQueue
             case "packet":
                 $this->processPacket();
                 break;
-            // case "device":
-            //     $this->processDevice();
-            //     break;
+            case "linuxLog":
+                $this->processLinux();
+                break;
             default:
                 Log::error("Unknown source: {$this->source}");
                 Log::info($this->data);
@@ -50,11 +50,12 @@ class ProcessRPCData implements ShouldQueue
     private function processPacket(): void
     {
         $device = Device::firstOrCreate([
-            'key' => $this->data['deviceId'],
+            'key' => $this->data['deviceId']
+        ], [
             'name' => $this->data['deviceId']
         ]);
 
-        $device->packets()->create([
+        $packet = $device->packets()->create([
             'source_address_id' => $this->data['sourceIp'],
             'destination_address_id' => $this->data['destinationIp'],
             // 'protocol' => $this->data['protocol'],
@@ -66,6 +67,21 @@ class ProcessRPCData implements ShouldQueue
             'process_name' => $this->data['processName'] ?? null,
             'process_path' => $this->data['executablePath'] ?? null,
             'process_file_hash' => $this->data['fileHash'] ?? null
+        ]);
+    }
+
+    private function processLinux(): void
+    {
+        $device = Device::firstOrCreate([
+            'key' => $this->data['deviceId']
+        ], [
+            'name' => $this->data['deviceId']
+        ]);
+
+        $ssh = $device->ssh_requests()->create([
+            'source_address_id' => $this->data['sourceIp'],
+            'captured_at' => $this->data['timestamp'],
+            'process_name' => $this->data['processName'] ?? null
         ]);
     }
 }

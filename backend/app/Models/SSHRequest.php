@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\IPAddressCast;
 use Illuminate\Database\Eloquent\Model;
 
 class SSHRequest extends Model
@@ -16,6 +17,7 @@ class SSHRequest extends Model
     ];
 
     protected $casts = [
+        'source_address_id' => IPAddressCast::class,
         'captured_at' => 'datetime'
     ];
 
