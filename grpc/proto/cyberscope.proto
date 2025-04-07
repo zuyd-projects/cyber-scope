@@ -16,12 +16,13 @@ message LinuxLogRequest {
     string process_name = 4;
 }
 
-// TODO: Set correct fields for WindowsLogRequest
 message WindowsLogRequest {
     string device_id = 1;
     string source_ip = 2;
     string timestamp = 3;
-    string process_name = 4;
+    string action = 4;
+    int32 src_port = 5;
+    int32 dst_port = 6;
 }
 
 message PacketRequest {
