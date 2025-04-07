@@ -7,7 +7,7 @@ import useSWR from "swr";
 
 // Axios instance
 export const api = axios.create({
-	baseURL: "https://localdev.rickokkersen.nl/api",
+	baseURL: "https://api-cyberscope.rickokkersen.nl/api",
 	withCredentials: true,
 });
 
@@ -24,7 +24,7 @@ api.interceptors.request.use(
 );
 
 export const getCsrfToken = async () => {
-  await axios.get("https://localdev.rickokkersen.nl/sanctum/csrf-cookie", {
+  await axios.get("https://api-cyberscope.rickokkersen.nl/sanctum/csrf-cookie", {
     withCredentials: true,
   });
 };
