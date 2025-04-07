@@ -1,61 +1,52 @@
-Here’s a professional and informative README.md file for your PowerShell script:
-
-⸻
-
 🔐 Firewall IP Monitor Script
 
-This PowerShell script enables Windows Firewall logging and continuously monitors the firewall log file for network activity. It identifies unique source and destination IP addresses (both IPv4 and IPv6), determines their public/private status, and retrieves geolocation data. All newly discovered IPs are logged with timestamps and action types (ALLOW or DROP).
+This PowerShell script enables Windows Firewall logging and continuously monitors the firewall log file for network activity. It identifies source and destination IP addresses (IPv4 and IPv6), determines whether they’re public or private, and logs all activity with timestamps, connection actions (ALLOW or DROP), and the local computer name.
 
 ⸻
 
 📦 Features
-	•	✅ Unique Device ID Generation
-Generates and stores a persistent DeviceKey in the Windows Registry.
+	•	✅ Automatic Computer Name Identification
+Uses the computer’s name ($env:COMPUTERNAME) to tag log entries.
 	•	🔥 Enables Firewall Logging
-Automatically configures Windows Firewall to log allowed and dropped connections.
-	•	🌍 Public/Private IP Classification
-Detects whether an IP is public or private (e.g., internal network).
-	•	🛰️ Geolocation Lookup
-Queries ip-api.com to fetch country, region, and city for public IP addresses.
+Automatically activates logging for all firewall profiles (Domain, Private, Public).
+	•	🌐 Public/Private IP Classification
+Distinguishes between public IPs (e.g., internet addresses) and private/local network IPs.
 	•	📊 Real-Time Monitoring
-Continuously monitors the firewall log and reports newly seen IPs.
-	•	📝 Logging to File
-Outputs activity to FirewallIPLog.txt on the user’s Desktop.
+Continuously watches the firewall log and outputs newly detected IPs in real time.
+	•	📝 Logs to File
+Writes all relevant activity to a log file located on the user’s Desktop.
 
 ⸻
 
 ⚙️ How It Works
-	1.	DeviceKey Check
-	•	If a DeviceKey doesn’t exist in the registry, a new one is generated and stored.
-	•	Format: xxxx-xxxx-xxxx-xxxx
-	2.	Firewall Logging Configuration
-	•	Activates logging for all profiles (Domain, Public, Private).
-	•	Sets log file location:
+	1.	Firewall Logging Configuration
+	•	Enables firewall logging for allowed and dropped connections.
+	•	Log location:
 C:\Windows\System32\LogFiles\Firewall\pfirewall.log
-	3.	Log Monitoring Loop
-	•	Reads the last 200 lines of the firewall log.
+	2.	Monitoring Loop
+	•	Reads the last 200 lines of the firewall log repeatedly.
 	•	Extracts source and destination IPs.
-	•	Checks whether each IP is new.
-	•	Determines location using a public API.
-	•	Displays output to the console with color coding:
+	•	Determines whether each IP is public or private.
+	•	Logs each IP with a timestamp, action type (ALLOW or DROP), IP classification, and the computer name.
+	3.	Color-Coded Console Output
 	•	🔴 Red for dropped connections
 	•	🟡 Yellow for allowed connections
-	•	Logs all new IPs to a file.
 
 ⸻
 
 🛠️ Requirements
-	•	Administrator privileges
-	•	PowerShell 5.0+
-	•	Internet connection (for geolocation API)
+	•	⚠️ Administrator privileges
+	•	💻 PowerShell 5.0 or higher
+	•	❌ No internet connection required
 
 ⸻
 
 🗂️ Output File
-	•	Location: Desktop\FirewallIPLog.txt
-	•	Format:
+	•	Location:
+Desktop\FirewallIPLog.txt
+	•	Format Example:
 
-2025-04-03 13:37:42 | DeviceKey: 1234-5678-9012-3456 | ALLOW | Nieuw Publiek IP: 8.8.8.8 (Aantal: 1) => United States, California, Mountain View
+2025-04-07 09:15:32 | Computer: MY-PC | DROP | Public IP: 8.8.8.8
 
 
 
@@ -63,16 +54,19 @@ C:\Windows\System32\LogFiles\Firewall\pfirewall.log
 
 🚀 Running the Script
 	1.	Open PowerShell as Administrator.
-	2.	Execute the script:
+	2.	Navigate to the script’s location.
+	3.	Run the script:
 
-.\Monitor-Firewall.ps1
+.\MonitorFirewall.ps1
 
 
-	3.	Press Ctrl+C to stop monitoring.
+	4.	Press Ctrl + C to stop monitoring.
 
 ⸻
 
 ❗ Notes
-	•	Make sure firewall logging is not disabled by Group Policy.
-	•	IPv6 geolocation may be limited or less reliable.
-	•	All logs are stored locally; no sensitive data is transmitted.
+	•	Make sure firewall logging is not restricted by Group Policy.
+	•	The script only reads the last 200 log entries each cycle for performance.
+	•	All log data is stored locally and does not leave the system.
+
+⸻

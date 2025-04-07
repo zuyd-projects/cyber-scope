@@ -1,30 +1,10 @@
-# -------------------- DEVICE ID CHECK --------------------
-
-$registryPath = "HKLM:\SOFTWARE\CyberscopeAnalyzer"
-$deviceKeyName = "DeviceKey"
-
-# Kijk of de key bestaat
-if (-Not (Test-Path $registryPath)) {
-    New-Item -Path $registryPath -Force | Out-Null
-}
-
-$deviceKey = Get-ItemProperty -Path $registryPath -Name $deviceKeyName -ErrorAction SilentlyContinue | Select-Object -ExpandProperty $deviceKeyName -ErrorAction SilentlyContinue
-
-if (-not $deviceKey) {
-    # Genereer een nieuwe DeviceKey in het formaat xxxx-xxxx-xxxx-xxxx
-    $deviceKey = -join ((1..4) | ForEach-Object { -join ((1..4) | ForEach-Object { Get-Random -Minimum 0 -Maximum 10 }) }) -replace '(.{4})(?=.)', '$1-'
-    Set-ItemProperty -Path $registryPath -Name $deviceKeyName -Value $deviceKey
-    Write-Host "Nieuw DeviceKey gegenereerd: $deviceKey" -ForegroundColor Cyan
-} else {
-    Write-Host "Bestaande DeviceKey gevonden: $deviceKey" -ForegroundColor Cyan
-}
-
 # -------------------- CONFIGURATIE --------------------
 
 $logPath = "C:\Windows\System32\LogFiles\Firewall\pfirewall.log"
 $interval = 60
 $desktop = [Environment]::GetFolderPath("Desktop")
 $outputLog = "$desktop\FirewallIPLog.txt"
+$computerName = $env:COMPUTERNAME
 
 # -------------------- LOGGING ACTIVEREN --------------------
 
@@ -40,34 +20,9 @@ Write-Host "IP-log wordt opgeslagen in: $outputLog`n" -ForegroundColor Green
 
 # -------------------- HULPFUNCTIES --------------------
 
-$ipCounts = @{}
-
 function Is-PublicIP {
     param ([string]$ip)
     return $ip -notmatch '^10\.|^192\.168\.|^172\.(1[6-9]|2[0-9]|3[0-1])\.|^127\.|^169\.254\.|^224\.|^239\.|^255\.|^0\.|^fe80|^::|:ffff:'
-}
-
-function Get-IPLocation($ip) {
-    if ($ip -match ':') {
-        try {
-            $response = Invoke-RestMethod -Uri "http://ip-api.com/json/$ip" -ErrorAction Stop
-            return "$($response.country), $($response.regionName), $($response.city)"
-        } catch {
-            return "IPv6-adres, locatie onbekend"
-        }
-    }
-
-    if (Is-PublicIP $ip) {
-        try {
-            $response = Invoke-RestMethod -Uri "http://ip-api.com/json/$ip" -ErrorAction Stop
-            return "$($response.country), $($response.regionName), $($response.city)"
-        }
-        catch {
-            return "Locatie niet gevonden"
-        }
-    } else {
-        return "Lokaal IP-adres"
-    }
 }
 
 function Find-AllIPs {
@@ -81,25 +36,19 @@ function Find-AllIPs {
             $action = $matches[1]
             $src = $matches[2]
             $dst = $matches[3]
+            $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
             foreach ($ip in @($src, $dst)) {
-                if ($ipCounts.ContainsKey($ip)) {
-                    $ipCounts[$ip]++
+                $type = if (Is-PublicIP $ip) { "Publiek" } else { "Lokaal" }
+                $output = "$timestamp | Computer: $computerName | $action | $type IP: $ip"
+
+                if ($action -eq "DROP") {
+                    Write-Host $output -ForegroundColor Red
                 } else {
-                    $ipCounts[$ip] = 1
-                    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-                    $location = Get-IPLocation $ip
-                    $type = if (Is-PublicIP $ip) { "Publiek" } else { "Lokaal" }
-                    $output = "$timestamp | DeviceKey: $deviceKey | $action | Nieuw $type IP: $ip (Aantal: $($ipCounts[$ip])) => $location"
-
-                    if ($action -eq "DROP") {
-                        Write-Host $output -ForegroundColor Red
-                    } else {
-                        Write-Host $output -ForegroundColor Yellow
-                    }
-
-                    Add-Content -Path $outputLog -Value $output
+                    Write-Host $output -ForegroundColor Yellow
                 }
+
+                Add-Content -Path $outputLog -Value $output
             }
         }
     }
