@@ -10,3 +10,7 @@
 /CyberscopeAnalyzer/InstallerAction/obj
 /CyberscopeAnalyzer/packages
 /CyberscopeAnalyzer/SetupCyberscopeAnalyzer/Debug
+/windows-firewall-collector/GrpcClient/.vs
+/windows-firewall-collector/GrpcClient/bin
+/windows-firewall-collector/GrpcClient/obj
+/windows-firewall-collector/GrpcClient/packages
