@@ -9,7 +9,7 @@ if %errorlevel% NEQ 0 (
 )
 
 :: If running as administrator, execute the PowerShell script
-set INSTALL_PATH=%ProgramFiles%\CyberScope\FirewallCollector
+set INSTALL_PATH=%ProgramFiles%\Cyberscope\FirewallCollector
 set NSSM_PATH=%INSTALL_PATH%\nssm.exe
 set SERVICE_NAME=CyberscopeFirewallCollector
 

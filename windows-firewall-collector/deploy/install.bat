@@ -11,7 +11,7 @@ if %errorlevel% NEQ 0 (
 :: If running as administrator, execute the script
 @echo off
 :: Define variables for the installation path and service name
-set INSTALL_PATH=%ProgramFiles%\CyberScope\FirewallCollector
+set INSTALL_PATH=%ProgramFiles%\Cyberscope\FirewallCollector
 set NSSM_PATH=%INSTALL_PATH%\nssm.exe
 set SCRIPT_PATH=run.ps1
 set SERVICE_NAME=CyberscopeFirewallCollector
