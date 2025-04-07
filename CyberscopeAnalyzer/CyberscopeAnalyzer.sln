@@ -5,34 +5,47 @@ VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CyberscopeAnalyzer", "CyberscopeAnalyzer\CyberscopeAnalyzer.csproj", "{64F7BA64-7BAB-410A-BD15-4100CF5845CE}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "CyberscopeAnalyzerSetup", "SetupCyberscopeAnalyzer\SetupCyberscopeAnalyzer.vdproj", "{ABB212EE-AA3B-48B7-A6A2-FEA7689078D1}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "CyberscopeAnalyzerSetup", "SetupCyberscopeAnalyzer\SetupCyberscopeAnalyzer.vdproj", "{C4B11B89-DA07-5461-65F1-AA1A6713B1F5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InstallerAction", "InstallerAction\InstallerAction.csproj", "{DE5F085F-A2D8-49EE-A6C1-35539A4F18BA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CyberscopeAnalyzerService", "CyberscopeAnalyzerService\CyberscopeAnalyzerService.csproj", "{F9F539D0-04D0-42EB-8167-E27667418FD7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceManager", "ServiceManager\ServiceManager.csproj", "{BA808A88-5A00-43E3-91DD-748EF169C5D7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{64F7BA64-7BAB-410A-BD15-4100CF5845CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{64F7BA64-7BAB-410A-BD15-4100CF5845CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64F7BA64-7BAB-410A-BD15-4100CF5845CE}.Debug|x64.ActiveCfg = Debug|x64
+		{64F7BA64-7BAB-410A-BD15-4100CF5845CE}.Debug|x64.Build.0 = Debug|x64
 		{64F7BA64-7BAB-410A-BD15-4100CF5845CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64F7BA64-7BAB-410A-BD15-4100CF5845CE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ABB212EE-AA3B-48B7-A6A2-FEA7689078D1}.Debug|Any CPU.ActiveCfg = Debug
-		{ABB212EE-AA3B-48B7-A6A2-FEA7689078D1}.Release|Any CPU.ActiveCfg = Release
-		{DE5F085F-A2D8-49EE-A6C1-35539A4F18BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DE5F085F-A2D8-49EE-A6C1-35539A4F18BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DE5F085F-A2D8-49EE-A6C1-35539A4F18BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DE5F085F-A2D8-49EE-A6C1-35539A4F18BA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F9F539D0-04D0-42EB-8167-E27667418FD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F9F539D0-04D0-42EB-8167-E27667418FD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F9F539D0-04D0-42EB-8167-E27667418FD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F9F539D0-04D0-42EB-8167-E27667418FD7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64F7BA64-7BAB-410A-BD15-4100CF5845CE}.Release|x64.ActiveCfg = Release|x64
+		{64F7BA64-7BAB-410A-BD15-4100CF5845CE}.Release|x64.Build.0 = Release|x64
+		{C4B11B89-DA07-5461-65F1-AA1A6713B1F5}.Debug|Any CPU.ActiveCfg = Debug
+		{C4B11B89-DA07-5461-65F1-AA1A6713B1F5}.Debug|Any CPU.Build.0 = Debug
+		{C4B11B89-DA07-5461-65F1-AA1A6713B1F5}.Debug|x64.ActiveCfg = Debug
+		{C4B11B89-DA07-5461-65F1-AA1A6713B1F5}.Debug|x64.Build.0 = Debug
+		{C4B11B89-DA07-5461-65F1-AA1A6713B1F5}.Release|Any CPU.ActiveCfg = Release
+		{C4B11B89-DA07-5461-65F1-AA1A6713B1F5}.Release|Any CPU.Build.0 = Release
+		{C4B11B89-DA07-5461-65F1-AA1A6713B1F5}.Release|x64.ActiveCfg = Release
+		{C4B11B89-DA07-5461-65F1-AA1A6713B1F5}.Release|x64.Build.0 = Release
+		{BA808A88-5A00-43E3-91DD-748EF169C5D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA808A88-5A00-43E3-91DD-748EF169C5D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA808A88-5A00-43E3-91DD-748EF169C5D7}.Debug|x64.ActiveCfg = Debug|x64
+		{BA808A88-5A00-43E3-91DD-748EF169C5D7}.Debug|x64.Build.0 = Debug|x64
+		{BA808A88-5A00-43E3-91DD-748EF169C5D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA808A88-5A00-43E3-91DD-748EF169C5D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA808A88-5A00-43E3-91DD-748EF169C5D7}.Release|x64.ActiveCfg = Release|Any CPU
+		{BA808A88-5A00-43E3-91DD-748EF169C5D7}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ABA787BB-6ABD-4E8C-A6B8-AA50F1ED1A19}
 	EndGlobalSection
 EndGlobal

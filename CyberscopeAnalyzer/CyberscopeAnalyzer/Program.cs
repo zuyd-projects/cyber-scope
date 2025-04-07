@@ -22,20 +22,6 @@ namespace CyberscopeAnalyzer
         static void Main(string[] args)
         {
             Console.WriteLine(Logger.IsErrorEnabled);
-            RegistryKey registryKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\CyberscopeAnalyzer");
-            if (registryKey == null)
-            {
-                //Console.WriteLine("Setup failed");
-                Logger.Error("Registry key not found. Exiting...");
-                return;
-            }
-            string deviceKey = registryKey.GetValue("DeviceKey").ToString();
-
-            if (string.IsNullOrEmpty(deviceKey)) {
-                //Console.WriteLine("Device key not found in registry. Exiting...");
-                Logger.Error("Device key not found in registry. Exiting...");
-                return;
-            }
 
             Console.WriteLine("Starting Network Traffic Analyzer...");
             PacketCaptureHandler packetHandler = new PacketCaptureHandler();

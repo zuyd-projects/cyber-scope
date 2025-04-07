@@ -14,3 +14,5 @@
 /windows-firewall-collector/GrpcClient/bin
 /windows-firewall-collector/GrpcClient/obj
 /windows-firewall-collector/GrpcClient/packages
+/CyberscopeAnalyzer/ServiceManager/obj
+/CyberscopeAnalyzer/ServiceManager/bin
