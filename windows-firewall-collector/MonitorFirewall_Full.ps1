@@ -36,7 +36,7 @@ function Find-AllIPs {
             $action = $matches[1]
             $src = $matches[2]
             $dst = $matches[3]
-            $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+            $timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
 
             foreach ($ip in @($src, $dst)) {
                 $type = if (Is-PublicIP $ip) { "Publiek" } else { "Lokaal" }
