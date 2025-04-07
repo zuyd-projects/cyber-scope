@@ -17,4 +17,9 @@ class Device extends Model
     {
         return $this->hasMany(SSHRequest::class);
     }
+
+    public function win_firewall_logs()
+    {
+        return $this->hasMany(WinFirewallLog::class);
+    }
 }

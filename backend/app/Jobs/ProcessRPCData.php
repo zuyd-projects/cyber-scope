@@ -40,6 +40,9 @@ class ProcessRPCData implements ShouldQueue
             case "linuxLog":
                 $this->processLinux();
                 break;
+            case "windowsLog":
+                $this->processWindows();
+                break;
             default:
                 Log::error("Unknown source: {$this->source}");
                 Log::info($this->data);
@@ -82,6 +85,23 @@ class ProcessRPCData implements ShouldQueue
             'source_address_id' => $this->data['sourceIp'],
             'captured_at' => $this->data['timestamp'],
             'process_name' => $this->data['processName'] ?? null
+        ]);
+    }
+
+    private function processWindows(): void
+    {
+        $device = Device::firstOrCreate([
+            'key' => $this->data['deviceId']
+        ], [
+            'name' => $this->data['deviceId']
+        ]);
+
+        $winlog = $device->win_firewall_logs()->create([
+            'source_address_id' => $this->data['sourceIp'],
+            'captured_at' => $this->data['timestamp'],
+            'action' => $this->data['action'],
+            'source_port' => $this->data['srcPort'] ?? null,
+            'destination_port' => $this->data['dstPort'] ?? null,
         ]);
     }
 }
