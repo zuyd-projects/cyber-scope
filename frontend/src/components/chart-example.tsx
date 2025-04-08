@@ -34,6 +34,7 @@ const chartData = [
 const chartConfig = {
   views: {
     label: "Page Views",
+    color: "hsl(210, 10%, 80%)"
   },
   desktop: {
     label: "Desktop",
