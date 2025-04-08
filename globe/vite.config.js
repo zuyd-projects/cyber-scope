@@ -1,7 +1,15 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
-})
+    build: {
+        outDir: 'dist',  // This is where the built files will go
+        assetsDir: 'assets',
+        sourcemap: false,  // Optionally, disable sourcemaps for production
+        rollupOptions: {
+            input: 'index.html',  // The entry point to your app
+        },
+    },
+    server: {
+        port: 3000,
+    }
+});

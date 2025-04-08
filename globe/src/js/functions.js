@@ -13,12 +13,16 @@ export function emitArc({ lat: startLat, lng: startLng, hostname, address }) {
 }
 
 export function addPoint({ lat, lng, address }) {
+    // If point is within 0.5 degrees of fixedPoint, do not add it
+    const { lat: fixedLat, lng: fixedLng } = fixedPoint
+    if (Math.abs(lat - fixedLat) < 0.5 && Math.abs(lng - fixedLng) < 0.5) return
+
     const existingPoint = globe.pointsData().find(p => p.lat === lat && p.lng === lng)
     if (existingPoint) return
 
     const newPoint = { lat, lng, address }
     const updated = [...globe.pointsData(), newPoint]
-    globe.pointsData(updated.length > 20 ? updated.slice(-20) : updated)
+    globe.pointsData(updated.length > 40 ? updated.slice(-40) : updated)
 }
 
 export function sunPosAt(dt) {

@@ -21,7 +21,7 @@ endif
 dep: docker deploy
 
 # Commands
-deploy:
+deploy: 
 	kubectl rollout restart deployment cyberscope-globe --namespace=laravel-applications
 
 docker: docker-build docker-push
