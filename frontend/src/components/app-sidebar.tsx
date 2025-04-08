@@ -46,12 +46,6 @@ const data = {
       isActive: true,
     },
     {
-      title: "World Map",
-      url: "http://localhost:3000/worldview",
-      icon: Globe,
-      isActive: true,
-    },
-    {
       title: "Deployment",
       url: "http://localhost:3000/deployment",
       icon: Rocket,
