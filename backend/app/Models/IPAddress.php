@@ -25,8 +25,23 @@ class IPAddress extends Model
         return self::firstOrCreate($data);
     }
 
-    public function geoLocation()
+    public function geo_location()
     {
         return $this->belongsTo(GeoLocation::class);
+    }
+
+    public function packets()
+    {
+        return $this->hasMany(Packet::class, 'destination_address_id');
+    }
+
+    public function ssh_requests()
+    {
+        return $this->hasMany(SshRequest::class, 'source_address_id');
+    }
+
+    public function win_firewall_logs()
+    {
+        return $this->hasMany(WinFirewallLog::class, 'source_address_id');
     }
 }

@@ -28,17 +28,32 @@ class Packet extends Model
         'destination_address_id' => IPAddressCast::class
     ];
 
+    public static function boot()
+    {
+        parent::boot();
+
+        // Automatically set the captured_at timestamp to the current time if not provided
+        static::created(function ($model) {
+            \App\Events\IPLogged::dispatch(
+                $model->destination_ip->address,
+                $model->destination_ip->geo_location->latitude ?? null,
+                $model->destination_ip->geo_location->longitude ?? null,
+                $model->device->name
+            );
+        });
+    }
+
     public function device()
     {
         return $this->belongsTo(Device::class);
     }
 
-    public function sourceIp()
+    public function source_ip()
     {
         return $this->belongsTo(IPAddress::class, 'source_address_id');
     }
 
-    public function destinationIp()
+    public function destination_ip()
     {
         return $this->belongsTo(IPAddress::class, 'destination_address_id');
     }

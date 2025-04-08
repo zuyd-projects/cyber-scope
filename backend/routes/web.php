@@ -6,4 +6,4 @@ Route::get('/', function () {
     return ['Laravel' => app()->version()];
 });
 
-require __DIR__.'/auth.php';
+Route::get('/test', 'App\Http\Controllers\TestController@index');
