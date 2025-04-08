@@ -33,7 +33,7 @@ ssh-log-monitor/
 You can install the binary and set up everything (cron, logs, offset) in **one command**:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/zuyd-projects/cyber-scope/main/ssh-log-monitor/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/zuyd-projects/cyber-scope/main/ssh-log-monitor/install.sh | sudo bash
 ```
 
 This will:
