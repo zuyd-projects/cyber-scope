@@ -28,7 +28,7 @@ sudo chmod 664 "$LOG_PATH"
 echo "✅ Log file ready at $LOG_PATH"
 
 # 4. Add cron job (idempotent)
-( crontab -l 2>/dev/null | grep -v "$BINARY_NAME" ; echo "$CRON_LINE" ) | crontab -
-echo "✅ Cron job added to run every 5 minutes"
+(sudo crontab -u root -l 2>/dev/null | grep -v "$BINARY_NAME" ; echo "$CRON_LINE") | sudo crontab -u root -
+echo "✅ Cron job added to root's crontab to run every 5 minutes"
 
 echo "🎉 SSH Monitor installed and running via cron!"
