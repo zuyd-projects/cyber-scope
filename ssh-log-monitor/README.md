@@ -12,6 +12,10 @@ A Linux-compatible Go application that monitors `/var/log/auth.log` for SSH logi
 - Tracks last-read log position using an offset file
 - Lightweight and cron-compatible
 - Installable in 1 command using `curl`
+- Built-in timeout mechanism (5-minute max runtime)
+- Incremental offset tracking to prevent duplicate processing
+- Lock mechanism to prevent concurrent runs
+- Comprehensive logging with performance metrics
 
 ---
 
@@ -101,6 +105,30 @@ It will:
 - Skip previously seen lines (based on offset)
 - Extract IPs from SSH login attempts
 - Send logs to the gRPC server defined in `main.go`
+- Update the offset after processing each entry
+- Terminate after 5 minutes (if still running)
+
+---
+
+## 🔄 Reliability Features
+
+### Timeout Protection
+The application has a built-in 5-minute timeout to prevent indefinite execution. If the timeout is reached, the current progress is saved before termination.
+
+### Incremental Offset Tracking
+The offset file is updated after each log entry is processed, ensuring that even if the application is terminated prematurely:
+- No log entries are processed twice
+- Processing can resume exactly where it left off
+
+### Concurrent Run Prevention
+A lock mechanism ensures that only one instance of the application can run at a time, preventing race conditions when processing log entries.
+
+### Enhanced Logging
+Detailed logs provide insights into:
+- Processing progress and performance metrics
+- Connection status to the gRPC server
+- Errors and exceptional conditions
+- Partial progress during long-running tasks
 
 ---
 
