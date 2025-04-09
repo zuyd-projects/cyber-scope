@@ -16,11 +16,6 @@ RUN npm run build
 # Second stage: Serve with NGINX
 FROM nginx:alpine AS production
 
-# Copy custom NGINX config (optional)
-COPY default.conf /etc/nginx/conf.d/default.conf
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
 # Copy custom NGINX config
 COPY default.conf /etc/nginx/conf.d/default.conf
 COPY entrypoint.sh /entrypoint.sh
