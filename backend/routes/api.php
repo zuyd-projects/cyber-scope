@@ -14,3 +14,34 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
+
+Route::prefix('devices')->controller(\App\Http\Controllers\DeviceController::class)->group(function () {
+    Route::get('/', 'index');
+    Route::get('/{device}', 'show');
+    Route::post('/', 'store');
+    Route::put('/{device}', 'update');
+    Route::delete('/{device}', 'destroy');
+});
+
+Route::prefix('firewall_logs')->controller(\App\Http\Controllers\FirewallLogController::class)->group(function () {
+    Route::get('/', 'index');
+    Route::get('/{device}', 'per_device');
+});
+
+Route::prefix('ssh_requests')->controller(\App\Http\Controllers\SSHRequestController::class)->group(function () {
+    Route::get('/', 'index');
+    Route::get('/{device}', 'per_device');
+});
+
+Route::prefix('packets')->controller(\App\Http\Controllers\PacketController::class)->group(function () {
+    Route::get('/', 'index');
+    Route::get('/{device}', 'per_device');
+});
+
+Route::prefix('ip_address')->controller(\App\Http\Controllers\IpAddressController::class)->group(function () {
+    Route::get('/', 'index');
+    Route::get('/search', 'search');
+    Route::get('/by_country', 'by_country');
+    Route::get('/by_country/{country_code}', 'per_country');
+    Route::get('/{id}', 'show');
+});

@@ -34,7 +34,15 @@ class GeoLocation extends Model
             'time_zone' => $geoData['timeZone']
         ];
 
-        return self::firstOrCreate($data);
+        $existing = self::where($data)->first();
+
+        if ($existing) {
+            // If a matching record exists, return it
+            return $existing;
+        }
+
+        // Otherwise, create a new record
+        return self::create($data);
     }
 
     public function ipAddress()
