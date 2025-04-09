@@ -48,10 +48,14 @@ func main() {
 		fmt.Printf("➡️ Found SSH login attempt from IP %s at %s\n", entry.IP, entry.Timestamp)
 	}
 
-	for _, entry := range entries {
+	for i, entry := range entries {
 		select {
 		case <-ctx.Done():
 			log.Printf("Timeout reached, stopping execution")
+			// Write the last processed offset before exiting
+			if err := state.WriteOffset(offsetPath, offset+int64(i)); err != nil {
+				log.Printf("Failed to write offset: %v", err)
+			}
 			return
 		default:
 			log.Printf("Sending log for IP %s at %s", entry.IP, entry.Timestamp)
@@ -59,10 +63,11 @@ func main() {
 			if err := grpcclient.SendLog(grpcAddress, entry.IP, entry.Timestamp); err != nil {
 				log.Printf("gRPC send failed: %v", err)
 			}
-		}
-	}
 
-	if err := state.WriteOffset(offsetPath, newOffset); err != nil {
-		log.Printf("Failed to write offset: %v", err)
+			// Update the offset after processing each entry
+			if err := state.WriteOffset(offsetPath, offset+int64(i+1)); err != nil {
+				log.Printf("Failed to write offset: %v", err)
+			}
+		}
 	}
 }
