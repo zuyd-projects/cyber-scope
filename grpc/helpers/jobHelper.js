@@ -1,23 +1,29 @@
-import mysql from "mysql2/promise";
 import { v4 as uuidv4 } from "uuid";
 import { serialize } from "php-serialize";
+import { createClient } from "redis";
 
-const db = await mysql.createPool({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-});
+const redis = createClient({
+    url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
+    password: process.env.REDIS_PASSWORD,
+})
+await redis.connect();
 
 function serializeCommand(source, data) {
     let start = 'O:23:"App\\Jobs\\ProcessRPCData"';
     const serializedCommand = serialize({
         data: data,
-        source: source
+        source: source,
+        connection: "redis",
+        queue: "grpc"
     });
     // Remove first character and append to default string
     return start + serializedCommand.slice(1);
+}
+
+function randomId() {
+    let datetime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    let base64 = Buffer.from(datetime).toString('base64');
+    return base64.replace(/=/g, '').replace(/\+/g, '').replace(/\//g, '');
 }
 
 function createJobPayload(source, data) {
@@ -34,15 +40,15 @@ function createJobPayload(source, data) {
         data: {
             commandName: "App\\Jobs\\ProcessRPCData",
             command: serializeCommand(source, data),
-        }
+        },
+        id: `${source}-${randomId()}`,
+        attempts: 0
     };
 }
 
 export async function insertJob(source, data) {
     const payload = JSON.stringify(createJobPayload(source, data));
 
-    await db.execute(
-        "INSERT INTO jobs (queue, payload, attempts, reserved_at, available_at, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-        ["default", payload, 0, null, Math.floor(Date.now() / 1000), Math.floor(Date.now() / 1000)]
-    );
+    // Push the job payload into the Redis queue
+    await redis.rPush(`cyber_scope_database_queues:grpc`, payload);
 }
