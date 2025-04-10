@@ -1,6 +1,8 @@
 import axios from "axios";
 import useSWR from "swr";
 
+const window = globalThis.window || {};
+
 const apiBaseUrl = window.location.host.includes("localhost")
   ? "http://rickokkersen.myds.me:8000"
   : "https://cyberscope.rickokkersen.nl";
@@ -9,7 +11,11 @@ const apiBaseUrl = window.location.host.includes("localhost")
 export const api = axios.create({
 	baseURL: `${apiBaseUrl}/api`,
 	withCredentials: true,
-	withXSRFToken: true
+	withXSRFToken: true,
+	headers : {
+		'Accept': 'application/json',
+		'Content-Type': 'application/json',
+	}
 });
 
 // Automatically attach token

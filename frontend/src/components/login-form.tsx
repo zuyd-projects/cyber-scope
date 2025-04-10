@@ -40,8 +40,8 @@ export function LoginForm({
         { withCredentials: true } // 👈 explicitly pass this even if api is configured
       );
   
-      const { accessToken, user } = res.data
-      localStorage.setItem("accessToken", accessToken)
+      const { token, user } = res.data
+      localStorage.setItem("accessToken", token)
       localStorage.setItem("user", JSON.stringify(user))
   
       router.push("/")
