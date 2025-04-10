@@ -1,13 +1,13 @@
 import axios from "axios";
 import useSWR from "swr";
 
-// const apiBaseUrl = window.location.host.includes("localhost")
-//   ? "http://localhost:3001"
-//   : "https://your-api-domain.com";
+const apiBaseUrl = window.location.host.includes("localhost")
+  ? "http://rickokkersen.myds.me:8000"
+  : "https://cyberscope.rickokkersen.nl";
 
 // Axios instance
 export const api = axios.create({
-	baseURL: "https://api-cyberscope.rickokkersen.nl/api",
+	baseURL: `${apiBaseUrl}/api`,
 	withCredentials: true,
 	withXSRFToken: true
 });
@@ -25,7 +25,7 @@ api.interceptors.request.use(
 );
 
 export const getCsrfToken = async () => {
-  await axios.get("https://api-cyberscope.rickokkersen.nl/sanctum/csrf-cookie", {
+  await axios.get(`${apiBaseUrl}/sanctum/csrf-cookie`, {
     withCredentials: true,
 	withXSRFToken: true
   });
