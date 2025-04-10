@@ -20,10 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
         ]);
 
-        // $middleware->validateCsrfTokens(except: [
-        //     'https://localdev.rickokkersen.nl/api/*',
-        //     'http://localhost:8000/api/*',
-        // ]);
+        // Workaround for CSRF token validation in API routes
+        $middleware->validateCsrfTokens(except: [
+            'http://rickokkersen.myds.me:8000/api/*'
+        ]);
 
         //
     })
