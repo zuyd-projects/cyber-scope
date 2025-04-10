@@ -9,6 +9,7 @@ import useSWR from "swr";
 export const api = axios.create({
 	baseURL: "https://api-cyberscope.rickokkersen.nl/api",
 	withCredentials: true,
+	withXSRFToken: true
 });
 
 // Automatically attach token
@@ -26,6 +27,7 @@ api.interceptors.request.use(
 export const getCsrfToken = async () => {
   await axios.get("https://api-cyberscope.rickokkersen.nl/sanctum/csrf-cookie", {
     withCredentials: true,
+	withXSRFToken: true
   });
 };
 
