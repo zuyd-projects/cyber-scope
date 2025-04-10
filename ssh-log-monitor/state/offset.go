@@ -1,9 +1,31 @@
 package state
 
 import (
+	"errors"
 	"os"
 	"strconv"
 )
+
+const lockFilePath = "process.lock"
+
+// AcquireLock creates a lock file to prevent concurrent runs.
+// Returns an error if the lock file already exists.
+func AcquireLock() error {
+	if _, err := os.Stat(lockFilePath); err == nil {
+		return errors.New("another process is already running")
+	}
+	file, err := os.Create(lockFilePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	return nil
+}
+
+// ReleaseLock removes the lock file.
+func ReleaseLock() error {
+	return os.Remove(lockFilePath)
+}
 
 // ReadOffset reads the offset from the given file path.
 // If the file does not exist, it returns 0.
