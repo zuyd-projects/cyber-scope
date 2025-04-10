@@ -1,15 +1,6 @@
 import { useEffect, useRef } from "react"
 import clsx from "clsx"
-
-type Device = {
-  id: number
-  name: string
-  key: string
-  os: string
-  status: string
-  ipAddresses?: { ip: string; country: string }[]
-}
-
+import { Device } from "@cyberscope/types"
 interface DeviceSectionProps {
   devices: Device[]
   selectedDevice: Device | null
@@ -92,22 +83,6 @@ export function DeviceSection({
           <p>
             <strong>Status:</strong> {selectedDevice.status ? 'Online' : 'Offline'}
           </p>
-          {selectedDevice.ipAddresses?.length ? (
-            <div className="mt-3">
-              <p className="font-medium text-blue-800 mb-1">IP Addresses:</p>
-              <ul className="list-disc list-inside text-sm text-blue-900">
-                {selectedDevice.ipAddresses.map((ip, index) => (
-                  <li key={index}>
-                    {ip.ip} ({ip.country})
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            <p className="mt-2 italic text-blue-700">
-              No IP addresses available.
-            </p>
-          )}
         </div>
       )}
     </div>

@@ -1,5 +1,7 @@
 "use client";
+
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AppSidebar } from "@cyberscope/components/app-sidebar";
 import { SiteHeader } from "@cyberscope/components/site-header";
 import {
@@ -17,10 +19,17 @@ import {
 } from "chart.js";
 import { DeviceSection } from "@cyberscope/components/dashboard/DeviceSection";
 import { FirewallLogsSection } from "@cyberscope/components/dashboard/FirewallLogsSection";
+import { SshLogsSection } from "@cyberscope/components/dashboard/SshLogsSection";
 import { ChartsSection } from "@cyberscope/components/dashboard/ChartsSection";
-import { InteractiveBarChart } from "@cyberscope/components/chart-example";
+import { InteractiveBarChart } from "@cyberscope/components/dashboard/ChartLogSection";
 import { WorldView } from "../../components/dashboard/WorldView";
 import { api } from "@cyberscope/lib/api";
+import {
+  FirewallLog,
+  SSHLog,
+  Device,
+  CountryConnection,
+} from "@cyberscope/types";
 
 ChartJS.register(
   BarElement,
@@ -31,122 +40,84 @@ ChartJS.register(
   Legend
 );
 
-type Device = {
-  id: number;
-  name: string;
-  key: string;
-  os: string;
-  status: string;
-  ipAddresses?: { ip: string; country: string }[];
-};
-
-type FirewallLog = {
-  id: number;
-  device_id: number;
-  action: string;
-  captured_at: string;
-  local_ip: string;
-  public_ip: string;
-  inbound_port: number;
-  outbound_port: number;
-};
-
-const dummyData = {
-  firewall_logs: [
-    {
-      id: 1,
-      device_id: 1,
-      action: "BLOCKED",
-      captured_at: "2025-04-06T12:00:00Z",
-      local_ip: "192.168.1.10",
-      public_ip: "51.124.78.146",
-      inbound_port: 443,
-      outbound_port: 55321,
-    },
-    {
-      id: 2,
-      device_id: 2,
-      action: "ALLOWED",
-      captured_at: "2025-04-06T12:10:00Z",
-      local_ip: "172.16.0.10",
-      public_ip: "151.101.10.172",
-      inbound_port: 80,
-      outbound_port: 55422,
-    },
-    {
-      id: 3,
-      device_id: 3,
-      action: "BLOCKED",
-      captured_at: "2025-04-06T13:00:00Z",
-      local_ip: "192.168.2.25",
-      public_ip: "8.8.8.8",
-      inbound_port: 22,
-      outbound_port: 55777,
-    },
-    {
-      id: 4,
-      device_id: 2,
-      action: "ALLOWED",
-      captured_at: "2025-04-06T14:00:00Z",
-      local_ip: "172.16.0.10",
-      public_ip: "104.26.2.33",
-      inbound_port: 443,
-      outbound_port: 56000,
-    },
-    {
-      id: 5,
-      device_id: 4,
-      action: "BLOCKED",
-      captured_at: "2025-04-06T15:00:00Z",
-      local_ip: "192.168.3.100",
-      public_ip: "203.0.113.45",
-      inbound_port: 21,
-      outbound_port: 56123,
-    },
-  ],
-};
-
 export default function Page() {
+  const router = useRouter();
   const [devices, setDevices] = useState<Device[]>([]);
-  const [logs, setLogs] = useState<FirewallLog[]>([]);
+  const [firewall_logs, setFirewallLogs] = useState<FirewallLog[]>([]);
+  const [ssh_logs, setSSHLogs] = useState<SSHLog[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+  const [inboundConnections, setInboundConnections] = useState<
+    CountryConnection[]
+  >([]);
+  const [outboundConnections, setOutboundConnections] = useState<
+    CountryConnection[]
+  >([]);
 
-  // useEffect(() => {
-  //   setLogs(dummyData.firewall_logs);
-  // }, []);
+  // 🔒 Redirect if no access token
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      router.replace("/login");
+    }
+  }, [router]);
+
   useEffect(() => {
     const fetchDevices = async () => {
       try {
         const response = await api.get("/devices");
-        if (response.status != 200) {
-          throw new Error("Failed to fetch devices");
-        }
-        const data = response.data;
-        setDevices(data);
-      }
-      catch (error) {
+        if (response.status !== 200) throw new Error("Failed to fetch devices");
+        setDevices(response.data);
+      } catch (error) {
         console.error("Error fetching devices:", error);
       }
     };
     fetchDevices();
   }, []);
 
-  const actionStats = logs.reduce((acc, log) => {
-    acc[log.action] = (acc[log.action] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  useEffect(() => {
+    const fetchFirewallLogs = async () => {
+      try {
+        const response = await api.get(
+          "/firewall_logs?paginate=100&order=desc"
+        );
+        if (response.status !== 200)
+          throw new Error("Failed to fetch firewall logs");
+        setFirewallLogs(response.data.data);
+      } catch (error) {
+        console.error("Error fetching firewall logs:", error);
+      }
+    };
+    fetchFirewallLogs();
+  }, []);
 
-  const barChartData = {
-    labels: Object.keys(actionStats),
-    datasets: [
-      {
-        label: "Firewall Events",
-        data: Object.values(actionStats),
-        backgroundColor: ["#f87171", "#60a5fa"],
-        borderRadius: 5,
-      },
-    ],
-  };
+  useEffect(() => {
+    const fetchSSHLogs = async () => {
+      try {
+        const response = await api.get("/ssh_requests?paginate=100&order=desc");
+        if (response.status !== 200)
+          throw new Error("Failed to fetch SSH logs");
+        setSSHLogs(response.data.data);
+      } catch (error) {
+        console.error("Error fetching SSH logs:", error);
+      }
+    };
+    fetchSSHLogs();
+  }, []);
+
+  useEffect(() => {
+    const fetchCountryConnection = async () => {
+      try {
+        const response = await api.get("/graph/countries_by_connections");
+        if (response.status !== 200)
+          throw new Error("Failed to fetch connections");
+        setInboundConnections(response.data.inbound);
+        setOutboundConnections(response.data.outbound);
+      } catch (error) {
+        console.error("Error fetching connections:", error);
+      }
+    };
+    fetchCountryConnection();
+  }, []);
 
   const barOptions = {
     responsive: true,
@@ -163,13 +134,12 @@ export default function Page() {
     },
   };
 
-  // 🌍 Aggregate IPs by country
   const countryStats: Record<string, number> = {};
-  devices.forEach((device) => {
-    device.ipAddresses?.forEach((ipObj) => {
-      countryStats[ipObj.country] = (countryStats[ipObj.country] || 0) + 1;
-    });
-  });
+  // devices.forEach((device) => {
+  //   device.ipAddresses?.forEach((ipObj) => {
+  //     countryStats[ipObj.country] = (countryStats[ipObj.country] || 0) + 1;
+  //   });
+  // });
 
   const doughnutData = {
     labels: Object.keys(countryStats),
@@ -201,19 +171,18 @@ export default function Page() {
                 selectedDevice={selectedDevice}
                 setSelectedDevice={setSelectedDevice}
               />
-
-              <WorldView/>
-
-              <FirewallLogsSection logs={logs} devices={devices} />
-
+              <WorldView />
+              <FirewallLogsSection logs={firewall_logs} devices={devices} />
+              <SshLogsSection logs={ssh_logs} devices={devices} />
               <div className="flex flex-1 flex-col gap-4">
-                <InteractiveBarChart />
+                <InteractiveBarChart
+                  firewallLogs={firewall_logs}
+                  sshLogs={ssh_logs}
+                />
               </div>
-
               <ChartsSection
-                barChartData={barChartData}
-                barOptions={barOptions}
-                doughnutData={doughnutData}
+                inbound={inboundConnections}
+                outbound={outboundConnections}
               />
             </div>
           </SidebarInset>

@@ -1,9 +1,9 @@
 import axios from "axios";
 import useSWR from "swr";
 
-const window = globalThis.window || {};
+const isClient = typeof window !== 'undefined';
 
-const apiBaseUrl = window.location.host.includes("localhost")
+const apiBaseUrl = isClient && window.location.host.includes("localhost")
   ? "http://rickokkersen.myds.me:8000"
   : "https://cyberscope.rickokkersen.nl";
 
@@ -28,6 +28,19 @@ api.interceptors.request.use(
 		return config;
 	},
 	(error) => Promise.reject(error),
+);
+
+// Catch 401 errors and redirect to login
+api.interceptors.response.use(
+	(response) => response,
+	(error) => {
+		if (error.response.status === 401) {
+			localStorage.removeItem("accessToken");
+			localStorage.removeItem("user");
+			window.location.href = "/login";
+		}
+		return Promise.reject(error);
+	},
 );
 
 export const getCsrfToken = async () => {

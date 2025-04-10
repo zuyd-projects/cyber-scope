@@ -1,17 +1,17 @@
 import { useState } from "react"
 import clsx from "clsx"
-import { FirewallLog, Device } from "@cyberscope/types"
+import { SSHLog, Device } from "@cyberscope/types"
 import ReactCountryFlag from "react-country-flag"
 
-interface FirewallLogsSectionProps {
-  logs: FirewallLog[]
+interface SSHLogsSectionProps {
+  logs: SSHLog[]
   devices: Device[]
 }
 
-// Add your own list of high-risk countries (ISO 3166-1 alpha-2 codes)
+// Same risk list as firewall section
 const RISK_COUNTRIES = ["RU", "IR", "KP", "CN", "SY", "PK"]
 
-export function FirewallLogsSection({ logs, devices }: FirewallLogsSectionProps) {
+export function SshLogsSection({ logs, devices }: SSHLogsSectionProps) {
   const [visibleCount, setVisibleCount] = useState(10)
 
   const visibleLogs = logs.slice(0, visibleCount)
@@ -22,15 +22,13 @@ export function FirewallLogsSection({ logs, devices }: FirewallLogsSectionProps)
 
   return (
     <div className="rounded-xl bg-white p-4 shadow border max-h-[600px] overflow-y-auto">
-      <h2 className="text-xl font-bold mb-4">Recent Firewall Logs</h2>
+      <h2 className="text-xl font-bold mb-4">Recent SSH Logs</h2>
       <table className="table-auto w-full text-sm text-left text-gray-700">
         <thead className="text-xs text-gray-500 uppercase bg-gray-100">
           <tr>
-            <th className="px-4 py-2">Action</th>
             <th className="px-4 py-2">Device</th>
             <th className="px-4 py-2">Captured At</th>
             <th className="px-4 py-2">Public IP</th>
-            <th className="px-4 py-2">Ports</th>
           </tr>
         </thead>
         <tbody>
@@ -47,17 +45,6 @@ export function FirewallLogsSection({ logs, devices }: FirewallLogsSectionProps)
                   isRiskCountry && "bg-red-50"
                 )}
               >
-                <td className="px-4 py-2 font-semibold text-sm">
-                  <span
-                    className={clsx(
-                      log.action === "BLOCKED"
-                        ? "text-red-600"
-                        : "text-green-600"
-                    )}
-                  >
-                    {log.action}
-                  </span>
-                </td>
                 <td className="px-4 py-2">
                   {device?.name || `Device #${log.device_id}`}
                 </td>
@@ -76,9 +63,6 @@ export function FirewallLogsSection({ logs, devices }: FirewallLogsSectionProps)
                       RISK
                     </span>
                   )}
-                </td>
-                <td className="px-4 py-2 font-mono">
-                  {log.source_port} ➝ {log.destination_port}
                 </td>
               </tr>
             )
