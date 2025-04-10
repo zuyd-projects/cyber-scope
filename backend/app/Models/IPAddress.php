@@ -35,7 +35,7 @@ class IPAddress extends Model
 
     public function geo_location()
     {
-        return $this->belongsTo(GeoLocation::class);
+        return $this->belongsTo(GeoLocation::class, 'geo_location_id');
     }
 
     public function packets()

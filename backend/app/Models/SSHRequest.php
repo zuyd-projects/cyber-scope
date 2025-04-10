@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class SSHRequest extends Model
 {
+    use \Illuminate\Database\Eloquent\Factories\HasFactory;
+
     protected $table = "ssh_requests";
 
     protected $fillable = [

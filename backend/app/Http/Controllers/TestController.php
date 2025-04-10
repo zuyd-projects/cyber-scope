@@ -6,6 +6,8 @@ use App\Models\Device;
 use App\Helpers\IPHelper;
 use App\Models\IPAddress;
 use Illuminate\Http\Request;
+use App\Models\WinFirewallLog;
+use Illuminate\Support\Facades\DB;
 use PhpParser\Node\Stmt\Continue_;
 
 
@@ -81,6 +83,141 @@ class TestController extends Controller
         // // }
         // dd(IPHelper::isIPv4('192.168.1.1'), IPHelper::isIPv4('2001:0db8:85a3:0000:0000:8a2e:0370:7334'));
 
-        return Device::all();
+        // return Device::all();
+        // $d = [
+        //     [
+        //         "id" => 1,
+        //         "device_id" => 1,
+        //         "action" => "BLOCKED",
+        //         "captured_at" => "2025-04-06T12:00:00Z",
+        //         "local_ip" => "192.168.1.10",
+        //         "public_ip" => "51.124.78.146",
+        //         "inbound_port" => 443,
+        //         "outbound_port" => 55321,
+        //     ],
+        //     [
+        //         "id" => 2,
+        //         "device_id" => 2,
+        //         "action" => "ALLOWED",
+        //         "captured_at" => "2025-04-06T12:10:00Z",
+        //         "local_ip" => "172.16.0.10",
+        //         "public_ip" => "151.101.10.172",
+        //         "inbound_port" => 80,
+        //         "outbound_port" => 55422,
+        //     ],
+        //     [
+        //         "id" => 3,
+        //         "device_id" => 3,
+        //         "action" => "BLOCKED",
+        //         "captured_at" => "2025-04-06T13:00:00Z",
+        //         "local_ip" => "192.168.2.25",
+        //         "public_ip" => "8.8.8.8",
+        //         "inbound_port" => 22,
+        //         "outbound_port" => 55777,
+        //     ],
+        //     [
+        //         "id" => 4,
+        //         "device_id" => 2,
+        //         "action" => "ALLOWED",
+        //         "captured_at" => "2025-04-06T14:00:00Z",
+        //         "local_ip" => "172.16.0.10",
+        //         "public_ip" => "104.26.2.33",
+        //         "inbound_port" => 443,
+        //         "outbound_port" => 56000,
+        //     ],
+        //     [
+        //         "id" => 5,
+        //         "device_id" => 4,
+        //         "action" => "BLOCKED",
+        //         "captured_at" => "2025-04-06T15:00:00Z",
+        //         "local_ip" => "192.168.3.100",
+        //         "public_ip" => "203.0.113.45",
+        //         "inbound_port" => 21,
+        //         "outbound_port" => 56123,
+        //     ],
+        // ];
+
+        // DB::transaction(function () use ($d) {
+        //     WinFirewallLog::withoutEvents(function () use ($d) {
+        //         foreach ($d as $item) {
+        //             WinFirewallLog::firstOrCreate([
+        //                 'device_id' => 1,
+        //                 'action' => $item['action'],
+        //                 'captured_at' => $item['captured_at'],
+        //                 'source_address_id' => IPAddress::fromString($item['public_ip'])->id,
+        //                 'source_port' => $item['inbound_port'],
+        //                 'destination_port' => $item['outbound_port'],
+        //             ]);
+        //         }
+        //     });
+        // });
+
+        return $this->groupConnections();
+    }
+
+    public function groupConnections()
+    {
+        $inboundConnections = DB::table(function ($query) {
+            $query->select(
+                'geo_locations.country_name',
+                'geo_locations.country_code',
+                DB::raw('COUNT(*) as total_connections')
+            )
+                ->from('ssh_requests')
+                ->join('ip_addresses', 'ssh_requests.source_address_id', '=', 'ip_addresses.id')
+                ->where('ip_addresses.is_local', false)
+                ->leftJoin('geo_locations', 'ip_addresses.geo_location_id', '=', 'geo_locations.id')
+                ->groupBy('geo_locations.country_name', 'geo_locations.country_code')
+                ->union(
+                    DB::table('win_firewall_logs')
+                        ->select(
+                            'geo_locations.country_name',
+                            'geo_locations.country_code',
+                            DB::raw('COUNT(*) as total_connections')
+                        )
+                        ->join('ip_addresses', 'win_firewall_logs.source_address_id', '=', 'ip_addresses.id')
+                        ->where('ip_addresses.is_local', false)
+                        ->leftJoin('geo_locations', 'ip_addresses.geo_location_id', '=', 'geo_locations.id')
+                        ->groupBy('geo_locations.country_name', 'geo_locations.country_code')
+                )
+                ->union(
+                    DB::table('packets')
+                        ->select(
+                            'geo_locations.country_name',
+                            'geo_locations.country_code',
+                            DB::raw('COUNT(*) as total_connections')
+                        )
+                        ->join('ip_addresses', 'packets.source_address_id', '=', 'ip_addresses.id')
+                        ->where('ip_addresses.is_local', false)
+                        ->leftJoin('geo_locations', 'ip_addresses.geo_location_id', '=', 'geo_locations.id')
+                        ->groupBy('geo_locations.country_name', 'geo_locations.country_code')
+                );
+        }, 'inbound_subquery')
+            ->select(
+                'country_name',
+                'country_code',
+                DB::raw('SUM(total_connections) as total_connections')
+            )
+            ->groupBy('country_name', 'country_code')
+            ->orderBy('total_connections', 'desc')
+            ->get();
+
+        $outboundConnections = DB::table('packets')
+            ->select(
+                'geo_locations.country_name',
+                'geo_locations.country_code',
+                DB::raw('SUM(size) as total_connections')
+            )
+            ->join('ip_addresses', 'packets.destination_address_id', '=', 'ip_addresses.id')
+            ->where('ip_addresses.is_local', false)
+            ->leftJoin('geo_locations', 'ip_addresses.geo_location_id', '=', 'geo_locations.id')
+            ->groupBy('geo_locations.country_name', 'geo_locations.country_code')
+            ->orderBy('total_connections', 'desc')
+            ->get();
+
+        return response()->json([
+            'inbound' => $inboundConnections,
+            'outbound' => $outboundConnections,
+        ]);
     }
 }

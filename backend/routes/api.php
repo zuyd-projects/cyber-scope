@@ -37,11 +37,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{device}', 'per_device');
     });
 
-    Route::prefix('ip_address')->controller(\App\Http\Controllers\IpAddressController::class)->group(function () {
+    Route::prefix('ip_address')->controller(\App\Http\Controllers\IPAddressController::class)->group(function () {
         Route::get('/', 'index');
         Route::get('/search', 'search');
         Route::get('/by_country', 'by_country');
         Route::get('/by_country/{country_code}', 'per_country');
         Route::get('/{id}', 'show');
+    });
+
+    Route::prefix('graph')->controller(\App\Http\Controllers\GraphController::class)->group(function () {
+        Route::get('/countries_by_connections', 'countries_by_connections');
     });
 });
