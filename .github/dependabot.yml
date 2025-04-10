@@ -1,0 +1,38 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-type: "production"
+  - package-ecosystem: "npm"
+    directory: "/globe"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-type: "production"
+  - package-ecosystem: "npm"
+    directory: "/grpc"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-type: "production"
+  - package-ecosystem: "composer"
+    directory: "/backend"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-type: "production"
+  - package-ecosystem: "nuget"
+    directory: "/CyberscopeAnalyzer"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-type: "production"
+  - package-ecosystem: "gomod"
+    directory: "/ssh-log-monitor"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-type: "production"
