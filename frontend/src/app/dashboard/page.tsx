@@ -20,6 +20,7 @@ import { FirewallLogsSection } from "@cyberscope/components/dashboard/FirewallLo
 import { ChartsSection } from "@cyberscope/components/dashboard/ChartsSection";
 import { InteractiveBarChart } from "@cyberscope/components/chart-example";
 import { WorldView } from "../../components/dashboard/WorldView";
+import { api } from "@cyberscope/lib/api";
 
 ChartJS.register(
   BarElement,
@@ -51,54 +52,6 @@ type FirewallLog = {
 };
 
 const dummyData = {
-  devices: [
-    {
-      id: 1,
-      name: "Workstation-01",
-      key: "abc123",
-      os: "Windows 11",
-      status: "online",
-      ipAddresses: [
-        { ip: "192.168.1.10", country: "Netherlands" },
-        { ip: "10.0.0.2", country: "Germany" },
-      ],
-    },
-    {
-      id: 2,
-      name: "Server-Alpha",
-      key: "def456",
-      os: "Ubuntu 22.04",
-      status: "maintenance",
-      ipAddresses: [{ ip: "172.16.0.10", country: "France" }],
-    },
-    {
-      id: 3,
-      name: "Laptop-Zulu",
-      key: "xyz789",
-      os: "macOS Ventura",
-      status: "offline",
-      ipAddresses: [
-        { ip: "192.168.2.25", country: "Netherlands" },
-        { ip: "10.10.10.5", country: "USA" },
-      ],
-    },
-    {
-      id: 4,
-      name: "Test-Rig-01",
-      key: "tst001",
-      os: "Windows 10",
-      status: "online",
-      ipAddresses: [{ ip: "192.168.3.100", country: "USA" }],
-    },
-    {
-      id: 5,
-      name: "Container-VM",
-      key: "vm002",
-      os: "Debian",
-      status: "online",
-      ipAddresses: [{ ip: "172.18.0.2", country: "Germany" }],
-    },
-  ],
   firewall_logs: [
     {
       id: 1,
@@ -158,9 +111,24 @@ export default function Page() {
   const [logs, setLogs] = useState<FirewallLog[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
 
+  // useEffect(() => {
+  //   setLogs(dummyData.firewall_logs);
+  // }, []);
   useEffect(() => {
-    setDevices(dummyData.devices);
-    setLogs(dummyData.firewall_logs);
+    const fetchDevices = async () => {
+      try {
+        const response = await api.get("/devices");
+        if (response.status != 200) {
+          throw new Error("Failed to fetch devices");
+        }
+        const data = response.data;
+        setDevices(data);
+      }
+      catch (error) {
+        console.error("Error fetching devices:", error);
+      }
+    };
+    fetchDevices();
   }, []);
 
   const actionStats = logs.reduce((acc, log) => {

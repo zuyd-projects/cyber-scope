@@ -65,14 +65,12 @@ export function DeviceSection({
                 className={clsx(
                   "px-2 py-0.5 text-xs font-medium rounded-full capitalize",
                   {
-                    "bg-green-100 text-green-700": device.status === "online",
-                    "bg-red-100 text-red-700": device.status === "offline",
-                    "bg-yellow-100 text-yellow-800":
-                      device.status === "maintenance"
+                    "bg-green-100 text-green-700": device.status,
+                    "bg-red-100 text-red-700": !device.status
                   }
                 )}
               >
-                {device.status}
+                {device.status ? 'Online' : 'Offline'}
               </span>
             </button>
           ))}
@@ -92,7 +90,7 @@ export function DeviceSection({
             <strong>Operating System:</strong> {selectedDevice.os}
           </p>
           <p>
-            <strong>Status:</strong> {selectedDevice.status}
+            <strong>Status:</strong> {selectedDevice.status ? 'Online' : 'Offline'}
           </p>
           {selectedDevice.ipAddresses?.length ? (
             <div className="mt-3">
