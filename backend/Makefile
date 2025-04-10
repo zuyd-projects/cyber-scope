@@ -26,6 +26,8 @@ deploy:
 	kubectl rollout restart deployment cyberscope-php-fpm --namespace=laravel-applications
 	kubectl rollout restart deployment cyberscope-nginx --namespace=laravel-applications
 	kubectl rollout restart deployment cyberscope-workers --namespace=laravel-applications
+	kubectl rollout restart deployment cyberscope-grpc-workers --namespace=laravel-applications
+	kubectl rollout restart deployment cyberscope-ws-workers --namespace=laravel-applications
 
 docker: docker-build docker-push
 
