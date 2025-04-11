@@ -9,7 +9,7 @@ interface SSHLogsSectionProps {
 }
 
 // Same risk list as firewall section
-const RISK_COUNTRIES = ["RU", "IR", "KP", "CN", "SY", "PK"]
+const RISK_COUNTRIES = ["RU", "IR", "KP", "CN", "SY", "PK", "HK"]
 
 export function SshLogsSection({ logs, devices }: SSHLogsSectionProps) {
   const [visibleCount, setVisibleCount] = useState(10)

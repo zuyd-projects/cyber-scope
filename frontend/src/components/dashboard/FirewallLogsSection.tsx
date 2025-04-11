@@ -8,7 +8,7 @@ interface FirewallLogsSectionProps {
   devices: Device[];
 }
 
-const RISK_COUNTRIES = ["RU", "IR", "KP", "CN", "SY", "PK"];
+const RISK_COUNTRIES = ["RU", "IR", "KP", "CN", "SY", "PK", "HK"];
 
 export function FirewallLogsSection({
   logs,
