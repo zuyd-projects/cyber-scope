@@ -56,7 +56,7 @@ export function ChartsSection({ inbound, outbound, forceShowEmptyCharts }: Chart
     applyGrouping = false
   ): ChartData<"doughnut"> => {
     const data = applyGrouping ? groupSmallCountries(rawData) : rawData
-
+    
     const labels = data.map(item => item.country_name || "Unknown")
     const values = data.map(item => Number(item.total_connections))
 
@@ -178,7 +178,7 @@ export function ChartsSection({ inbound, outbound, forceShowEmptyCharts }: Chart
           </div>
           <div className="flex justify-center w-full">
             <div className="max-w-[400px] w-full">
-              <Doughnut data={formatChartData(outbound, false)} options={options} />
+              <Doughnut data={formatChartData(outbound, true)} options={options} />
             </div>
           </div>
         </div>
