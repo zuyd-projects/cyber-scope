@@ -6,7 +6,7 @@ BINARY_NAME="ssh-monitor"
 INSTALL_PATH="/usr/local/bin/$BINARY_NAME"
 LOG_PATH="/var/log/ssh-monitor.log"
 OFFSET_PATH="/var/lib/ssh-monitor/offset.txt"
-CRON_LINE="*/5 * * * * $INSTALL_PATH >> $LOG_PATH 2>&1"
+CRON_LINE="* * * * * $INSTALL_PATH >> $LOG_PATH 2>&1"
 
 echo "📦 Installing SSH Monitor..."
 
