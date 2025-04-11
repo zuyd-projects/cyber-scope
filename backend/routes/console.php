@@ -3,6 +3,9 @@
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 
+// Import schedule.php from routes folder
+require base_path('routes/schedule.php');
+
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
@@ -44,3 +47,11 @@ Artisan::command('app:fetch-ip2locations', function () {
 
     $this->info("Database downloaded successfully! ($bytesCopied bytes copied)");
 })->purpose('Fetch the IP2Location database');
+
+Artisan::command('queue:stats', function () {
+    Artisan::call('queue:monitor redis:ws,redis:grpc');
+})->purpose('Monitor the queue for jobs');
+
+Artisan::command('app:cleanup-data', function () {
+    \App\Jobs\CleanupData::dispatch();
+})->purpose('Cleanup old data from the database');

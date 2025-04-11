@@ -45,7 +45,7 @@ class GeoLocation extends Model
         return self::create($data);
     }
 
-    public function ipAddress()
+    public function ip_addresses()
     {
         return $this->hasMany(IpAddress::class);
     }
