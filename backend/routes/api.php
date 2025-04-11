@@ -50,5 +50,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('graph')->controller(\App\Http\Controllers\GraphController::class)->group(function () {
         Route::get('/countries_by_connections', 'countries_by_connections');
+        Route::get('/connections_over_time', 'connections_over_time');
     });
 });
