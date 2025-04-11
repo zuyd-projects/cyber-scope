@@ -9,7 +9,7 @@ class GraphController extends Controller
 {
     public function countries_by_connections(Request $request)
     {
-        $userDeviceIds = $request->user()->devices->pluck('id');
+        $userDeviceIds = $request->user()->is_admin ? null : $request->user()->devices->pluck('id');
 
         $inboundConnections = DB::table(function ($query) use ($userDeviceIds) {
             $query->select(
@@ -20,7 +20,9 @@ class GraphController extends Controller
                 ->from('ssh_requests')
                 ->join('ip_addresses', 'ssh_requests.source_address_id', '=', 'ip_addresses.id')
                 ->where('ip_addresses.is_local', false)
-                ->whereIn('ssh_requests.device_id', $userDeviceIds)
+                ->when($userDeviceIds, function ($query) use ($userDeviceIds) {
+                    return $query->whereIn('ssh_requests.device_id', $userDeviceIds);
+                })
                 ->leftJoin('geo_locations', 'ip_addresses.geo_location_id', '=', 'geo_locations.id')
                 ->groupBy('geo_locations.country_name', 'geo_locations.country_code')
                 ->union(
@@ -32,7 +34,9 @@ class GraphController extends Controller
                         )
                         ->join('ip_addresses', 'win_firewall_logs.source_address_id', '=', 'ip_addresses.id')
                         ->where('ip_addresses.is_local', false)
-                        ->whereIn('win_firewall_logs.device_id', $userDeviceIds)
+                        ->when($userDeviceIds, function ($query) use ($userDeviceIds) {
+                            return $query->whereIn('win_firewall_logs.device_id', $userDeviceIds);
+                        })
                         ->leftJoin('geo_locations', 'ip_addresses.geo_location_id', '=', 'geo_locations.id')
                         ->groupBy('geo_locations.country_name', 'geo_locations.country_code')
                 )
@@ -45,7 +49,9 @@ class GraphController extends Controller
                         )
                         ->join('ip_addresses', 'packets.source_address_id', '=', 'ip_addresses.id')
                         ->where('ip_addresses.is_local', false)
-                        ->whereIn('packets.device_id', $userDeviceIds)
+                        ->when($userDeviceIds, function ($query) use ($userDeviceIds) {
+                            return $query->whereIn('packets.device_id', $userDeviceIds);
+                        })
                         ->leftJoin('geo_locations', 'ip_addresses.geo_location_id', '=', 'geo_locations.id')
                         ->groupBy('geo_locations.country_name', 'geo_locations.country_code')
                 );
@@ -67,11 +73,13 @@ class GraphController extends Controller
             )
             ->join('ip_addresses', 'packets.destination_address_id', '=', 'ip_addresses.id')
             ->where('ip_addresses.is_local', false)
-            ->whereIn('packets.device_id', $userDeviceIds)
+            ->when($userDeviceIds, function ($query) use ($userDeviceIds) {
+                return $query->whereIn('packets.device_id', $userDeviceIds);
+            })
             ->leftJoin('geo_locations', 'ip_addresses.geo_location_id', '=', 'geo_locations.id')
             ->groupBy('geo_locations.country_name', 'geo_locations.country_code')
             ->orderBy('total_connections', 'desc')
-            ->get();
+            ->toSql();
 
         return response()->json([
             'inbound' => $inboundConnections,
@@ -81,10 +89,12 @@ class GraphController extends Controller
 
     public function connections_over_time(Request $request)
     {
-        $userDeviceIds = $request->user()->devices->pluck('id');
+        $userDeviceIds = $request->user()->is_admin ? null : $request->user()->devices->pluck('id');
 
         $firewallLogs = DB::table('win_firewall_logs')
-            ->whereIn('device_id', $userDeviceIds)
+            ->when($userDeviceIds, function ($query) use ($userDeviceIds) {
+                return $query->whereIn('device_id', $userDeviceIds);
+            })
             ->select(
                 DB::raw("DATE_FORMAT(captured_at, '%Y-%m-%dT%H:00:00Z') as time"),
                 DB::raw('COUNT(*) as total_connections')
@@ -94,7 +104,9 @@ class GraphController extends Controller
             ->pluck('total_connections', 'time');
 
         $sshLogs = DB::table('ssh_requests')
-            ->whereIn('device_id', $userDeviceIds)
+            ->when($userDeviceIds, function ($query) use ($userDeviceIds) {
+                return $query->whereIn('device_id', $userDeviceIds);
+            })
             ->select(
                 DB::raw("DATE_FORMAT(captured_at, '%Y-%m-%dT%H:00:00Z') as time"),
                 DB::raw('COUNT(*) as total_connections')
@@ -104,7 +116,9 @@ class GraphController extends Controller
             ->pluck('total_connections', 'time');
 
         $packets = DB::table('packets')
-            ->whereIn('device_id', $userDeviceIds)
+            ->when($userDeviceIds, function ($query) use ($userDeviceIds) {
+                return $query->whereIn('device_id', $userDeviceIds);
+            })
             ->select(
                 DB::raw("DATE_FORMAT(captured_at, '%Y-%m-%dT%H:00:00Z') as time"),
                 DB::raw('SUM(size) as total_connections')
