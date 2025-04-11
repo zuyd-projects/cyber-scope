@@ -96,9 +96,9 @@ export function FirewallLogsSection({
                 e.target.value === "all" ? "all" : parseInt(e.target.value)
               )
             }
-            className="text-sm border border-gray-300 rounded px-2 py-1"
+            className="w-[900px] px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded hover:bg-blue-200 transition"
           >
-            <option value="all">All Firewall logs</option>
+            <option value="all">Firewall logs</option>
             {devices
               .filter((device) => device.os?.toLowerCase() === "windows")
               .map((device) => (
