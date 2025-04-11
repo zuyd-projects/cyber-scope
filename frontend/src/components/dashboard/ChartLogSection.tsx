@@ -27,6 +27,17 @@ interface Props {
   aggregatedData: AggregatedData;
 }
 
+function formatNumber(value: number): string {
+  if (value >= 1_000_000_000) {
+    return (value / 1_000_000_000).toFixed(1) + "B"; // Billions
+  } else if (value >= 1_000_000) {
+    return (value / 1_000_000).toFixed(1) + "M"; // Millions
+  } else if (value >= 1_000) {
+    return (value / 1_000).toFixed(1) + "K"; // Thousands
+  }
+  return value.toString(); // Less than 1,000
+}
+
 export function InteractiveBarChart({ aggregatedData = {} }: Props) {
   // Set initial active chart to the first available data type
   const availableChartTypes = React.useMemo(() => {
