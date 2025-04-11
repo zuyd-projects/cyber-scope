@@ -54,9 +54,8 @@ export default function Page() {
   const [outboundConnections, setOutboundConnections] = useState<
     CountryConnection[]
   >([]);
-  const [connectionsOverTime, setConnectionsOverTime] = useState<
-    AggregatedData | null
-  >(null);
+  const [connectionsOverTime, setConnectionsOverTime] =
+    useState<AggregatedData | null>(null);
 
   // 🔒 Redirect if no access token
   useEffect(() => {
@@ -131,15 +130,13 @@ export default function Page() {
         if (response.status !== 200)
           throw new Error("Failed to fetch connections over time");
 
-      setConnectionsOverTime(response.data);
-      }
-      catch (error) {
+        setConnectionsOverTime(response.data);
+      } catch (error) {
         console.error("Error fetching connections over time:", error);
       }
-    }
+    };
     fetchConnectionsOverTime();
-  }
-  , []);
+  }, []);
 
   return (
     <div className="[--header-height:calc(theme(spacing.14))]">
@@ -165,14 +162,13 @@ export default function Page() {
                 <SshLogsSection logs={ssh_logs} devices={devices} />
                 {connectionsOverTime && (
                   <div className="flex flex-1 flex-col gap-4">
-                    <InteractiveBarChart
-                      aggregatedData={connectionsOverTime}
-                    />
+                    <InteractiveBarChart aggregatedData={connectionsOverTime} />
                   </div>
                 )}
                 <ChartsSection
                   inbound={inboundConnections}
                   outbound={outboundConnections}
+                  forceShowEmptyCharts={true}
                 />
               </div>
             ) : (
@@ -184,49 +180,49 @@ export default function Page() {
                   selectedDevice={selectedDevice}
                   setSelectedDevice={setSelectedDevice}
                 />
-                
+
                 {/* Only show world view if there's connection data */}
-                {(inboundConnections.length > 0 || outboundConnections.length > 0) && (
-                  <WorldView />
-                )}
-                
+                {(inboundConnections.length > 0 ||
+                  outboundConnections.length > 0) && <WorldView />}
+
                 {/* Only show firewall logs section if there are logs */}
                 {firewall_logs.length > 0 && (
                   <FirewallLogsSection logs={firewall_logs} devices={devices} />
                 )}
-                
+
                 {/* Only show SSH logs section if there are logs */}
                 {ssh_logs.length > 0 && (
                   <SshLogsSection logs={ssh_logs} devices={devices} />
                 )}
-                
+
                 {/* Only show interactive chart if there are logs */}
                 {connectionsOverTime && (
                   <div className="flex flex-1 flex-col gap-4">
-                  <InteractiveBarChart
-                   aggregatedData={connectionsOverTime}
-                  />
-                </div>
+                    <InteractiveBarChart aggregatedData={connectionsOverTime} />
+                  </div>
                 )}
-                
+
                 {/* Only show charts section if there's connection data */}
-                {(inboundConnections.length > 0 || outboundConnections.length > 0) && (
+                {(inboundConnections.length > 0 ||
+                  outboundConnections.length > 0) && (
                   <ChartsSection
                     inbound={inboundConnections}
                     outbound={outboundConnections}
                   />
                 )}
-                
+
                 {/* Show a message if no data is available at all */}
-                {devices.length === 0 && 
-                 firewall_logs.length === 0 && 
-                 ssh_logs.length === 0 && 
-                 inboundConnections.length === 0 && 
-                 outboundConnections.length === 0 && (
-                  <div className="flex h-full items-center justify-center">
-                    <p className="text-lg text-gray-500">No data available for your account.</p>
-                  </div>
-                )}
+                {devices.length === 0 &&
+                  firewall_logs.length === 0 &&
+                  ssh_logs.length === 0 &&
+                  inboundConnections.length === 0 &&
+                  outboundConnections.length === 0 && (
+                    <div className="flex h-full items-center justify-center">
+                      <p className="text-lg text-gray-500">
+                        No data available for your account.
+                      </p>
+                    </div>
+                  )}
               </div>
             )}
           </SidebarInset>

@@ -17,9 +17,10 @@ ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels)
 interface ChartsSectionProps {
   inbound: CountryConnection[]
   outbound: CountryConnection[]
+  forceShowEmptyCharts?: boolean // 👈 New optional prop
 }
 
-export function ChartsSection({ inbound, outbound }: ChartsSectionProps) {
+export function ChartsSection({ inbound, outbound, forceShowEmptyCharts }: ChartsSectionProps) {
   const groupSmallCountries = (data: CountryConnection[], threshold = 5) => {
     const total = data.reduce((sum, item) => sum + Number(item.total_connections), 0)
     const grouped: CountryConnection[] = []
@@ -44,7 +45,7 @@ export function ChartsSection({ inbound, outbound }: ChartsSectionProps) {
         country_name: "Other",
         country_code: "?",
         total_connections: otherTotal,
-      });
+      })
     }
 
     return grouped
@@ -118,21 +119,21 @@ export function ChartsSection({ inbound, outbound }: ChartsSectionProps) {
 
   const downloadCSV = (data: CountryConnection[], filename: string) => {
     const total = data.reduce((sum, row) => sum + Number(row.total_connections), 0)
-  
+
     const header = ["Country", "Total Connections", "Percentage"]
     const rows = data.map(row => {
       const value = Number(row.total_connections)
       const percent = ((value / total) * 100).toFixed(1) + "%"
       return [row.country_name, value, percent]
     })
-  
+
     const csvContent = [header, ...rows]
       .map(e => e.join(","))
       .join("\n")
-  
+
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
     const url = URL.createObjectURL(blob)
-  
+
     const link = document.createElement("a")
     link.href = url
     link.setAttribute("download", filename)
@@ -142,34 +143,46 @@ export function ChartsSection({ inbound, outbound }: ChartsSectionProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className={`grid gap-4 ${(outbound.length > 0 || forceShowEmptyCharts) ? "md:grid-cols-2" : "grid-cols-1"}`}>
       {/* Inbound */}
-      <div className="rounded-xl bg-white p-4 shadow border">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Inbound IP Addresses by Country</h2>
-          <button
-            onClick={() => downloadCSV(groupSmallCountries(inbound), "inbound.csv")}
-            className="text-sm px-3 py-1 border rounded text-blue-600 border-blue-600 hover:bg-blue-50"
-          >
-            Download CSV
-          </button>
+      {(inbound.length > 0 || forceShowEmptyCharts) && (
+        <div className="rounded-xl bg-white p-4 shadow border">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Inbound IP Addresses by Country</h2>
+            <button
+              onClick={() => downloadCSV(groupSmallCountries(inbound), "inbound.csv")}
+              className="text-sm px-3 py-1 border rounded text-blue-600 border-blue-600 hover:bg-blue-50"
+            >
+              Download CSV
+            </button>
+          </div>
+          <div className="flex justify-center w-full">
+            <div className="max-w-[400px] w-full">
+              <Doughnut data={formatChartData(inbound, true)} options={options} />
+            </div>
+          </div>
         </div>
-        <Doughnut data={formatChartData(inbound, true)} options={options} />
-      </div>
+      )}
 
       {/* Outbound */}
-      <div className="rounded-xl bg-white p-4 shadow border">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Outbound IP Addresses by Country</h2>
-          <button
-            onClick={() => downloadCSV(outbound, "outbound.csv")}
-            className="text-sm px-3 py-1 border rounded text-blue-600 border-blue-600 hover:bg-blue-50"
-          >
-            Download CSV
-          </button>
+      {(outbound.length > 0 || forceShowEmptyCharts) && (
+        <div className="rounded-xl bg-white p-4 shadow border">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Outbound IP Addresses by Country</h2>
+            <button
+              onClick={() => downloadCSV(outbound, "outbound.csv")}
+              className="text-sm px-3 py-1 border rounded text-blue-600 border-blue-600 hover:bg-blue-50"
+            >
+              Download CSV
+            </button>
+          </div>
+          <div className="flex justify-center w-full">
+            <div className="max-w-[400px] w-full">
+              <Doughnut data={formatChartData(outbound, false)} options={options} />
+            </div>
+          </div>
         </div>
-        <Doughnut data={formatChartData(outbound, false)} options={options} />
-      </div>
+      )}
     </div>
   )
 }
