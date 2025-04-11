@@ -59,7 +59,7 @@ export const logout = () => {
 
 // Check if user is admin (role = 1)
 export const isAdmin = (profile: any) => {
-	return profile?.role === 1;
+	return profile?.is_admin === 1;
 };
 
 // SWR fetcher using axios

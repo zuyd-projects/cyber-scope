@@ -24,6 +24,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@cyberscope/components/ui/sidebar";
+import { logout } from "@cyberscope/lib/api";
 
 export function NavUser({
   user,
@@ -31,16 +32,21 @@ export function NavUser({
   user: {
     name: string;
     email: string;
-    role: number;
+    is_admin: number;
   };
 }) {
   const { isMobile } = useSidebar();
   
   // Define role badge styles based on role
-  const isAdmin = user.role === 1;
+  const isAdmin = user.is_admin === 1;
   const roleBadgeStyle = isAdmin
-    ? "bg-emerald-500 text-white dark:bg-emerald-600 dark:text-white shadow-sm"
+    ? "bg-red-500 text-white dark:bg-red-600 dark:text-white shadow-sm"
     : "bg-gray-500 text-white dark:bg-gray-600 dark:text-white shadow-sm";
+
+  // Handle logout
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <SidebarMenu>
@@ -99,7 +105,7 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               Log out
             </DropdownMenuItem>

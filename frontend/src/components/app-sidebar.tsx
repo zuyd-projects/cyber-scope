@@ -54,7 +54,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const userData = profile ? {
     name: profile.name || "User",
     email: profile.email || "",
-    role: profile.role
+    is_admin: profile.is_admin
   } : {
     name: "Loading...",
     email: "",
