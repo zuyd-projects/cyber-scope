@@ -15,14 +15,14 @@ const (
 	logPath     = "/var/log/auth.log"
 	offsetPath  = "offset.txt"
 	grpcAddress = "grpc-cyberscope.rickokkersen.nl:443"
-	timeout     = 5 * time.Minute
+	timeout     = time.Minute
 )
 
 func main() {
 	log.Println("🚀 Starting SSH log monitor...")
 	startTime := time.Now()
 
-	// Create a context with a 5-minute timeout
+	// Create a context with a X-minute timeout
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	log.Printf("⏱️ Set execution timeout: %v", timeout)
