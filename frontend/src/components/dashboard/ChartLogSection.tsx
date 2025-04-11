@@ -51,36 +51,114 @@ export function InteractiveBarChart({ aggregatedData = {} }: Props) {
 
   const chartData = React.useMemo(() => {
     const { firewalllogs = {}, sshlogs = {}, packets = {} } = aggregatedData;
+    
+    // First, get all timestamps
     const allTimestamps = [
       ...Object.keys(firewalllogs),
       ...Object.keys(sshlogs),
       ...Object.keys(packets)
     ].filter((value, index, self) => self.indexOf(value) === index)
       .sort();
-
-    // Format timestamps based on timeRange
-    return allTimestamps.map(timestamp => {
-      const date = new Date(timestamp);
-      let label: string;
+    
+    if (timeRange === "hour") {
+      // For hourly data, keep original timestamp format
+      return allTimestamps.map(timestamp => {
+        const date = new Date(timestamp);
+        const label = `${date.toISOString().split("T")[0]} ${date.getHours()}:00`;
+        
+        return {
+          timestamp,
+          label,
+          firewalllogs: firewalllogs[timestamp] || 0,
+          sshlogs: sshlogs[timestamp] || 0,
+          packets: packets[timestamp] || 0
+        };
+      });
+    } else if (timeRange === "day") {
+      // Group by day
+      const dailyData: Record<string, {
+        firewalllogs: number;
+        sshlogs: number;
+        packets: number;
+      }> = {};
       
-      if (timeRange === "hour") {
-        label = `${date.toISOString().split("T")[0]} ${date.getHours()}:00`;
-      } else if (timeRange === "week") {
+      allTimestamps.forEach(timestamp => {
+        const date = new Date(timestamp);
+        const dayKey = date.toISOString().split('T')[0];
+        
+        if (!dailyData[dayKey]) {
+          dailyData[dayKey] = { firewalllogs: 0, sshlogs: 0, packets: 0 };
+        }
+        
+        dailyData[dayKey].firewalllogs += firewalllogs[timestamp] || 0;
+        dailyData[dayKey].sshlogs += sshlogs[timestamp] || 0;
+        dailyData[dayKey].packets += packets[timestamp] || 0;
+      });
+      
+      return Object.entries(dailyData)
+        .map(([day, counts]) => ({
+          timestamp: day,
+          label: day,
+          ...counts
+        }))
+        .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+    } else {
+      // Group by week
+      const weeklyData: Record<string, {
+        firewalllogs: number;
+        sshlogs: number;
+        packets: number;
+        weekStart: string;
+      }> = {};
+      
+      allTimestamps.forEach(timestamp => {
+        const date = new Date(timestamp);
+        
+        // Get ISO week - this ensures consistent week boundaries
+        // First, get the year and week number
+        const yearStart = new Date(date.getFullYear(), 0, 1);
+        const days = Math.floor((date.getTime() - yearStart.getTime()) / (24 * 60 * 60 * 1000));
+        const weekNumber = Math.ceil((days + 1 + yearStart.getDay()) / 7);
+        
+        // Create a consistent key based on year and week
+        const weekKey = `${date.getFullYear()}-W${weekNumber.toString().padStart(2, '0')}`;
+        
+        // Calculate the first day of this ISO week
         const weekStart = new Date(date);
-        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-        label = `Week of ${weekStart.toISOString().split("T")[0]}`;
-      } else {
-        label = date.toISOString().split("T")[0];
-      }
+        weekStart.setDate(date.getDate() - date.getDay() + (date.getDay() === 0 ? -6 : 1)); // Monday as week start
+        weekStart.setHours(0, 0, 0, 0);
+        
+        if (!weeklyData[weekKey]) {
+          weeklyData[weekKey] = { 
+            firewalllogs: 0, 
+            sshlogs: 0, 
+            packets: 0,
+            weekStart: weekStart.toISOString().split('T')[0]
+          };
+        }
+        
+        weeklyData[weekKey].firewalllogs += firewalllogs[timestamp] || 0;
+        weeklyData[weekKey].sshlogs += sshlogs[timestamp] || 0;
+        weeklyData[weekKey].packets += packets[timestamp] || 0;
+      });
       
-      return {
-        timestamp,
-        label,
-        firewalllogs: firewalllogs[timestamp] || 0,
-        sshlogs: sshlogs[timestamp] || 0,
-        packets: packets[timestamp] || 0
-      };
-    });
+      return Object.entries(weeklyData)
+        .map(([weekKey, data]) => {
+          // Calculate the end of the week (7 days from start)
+          const weekStart = new Date(data.weekStart);
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekStart.getDate() + 6);
+          
+          return {
+            timestamp: weekKey,
+            label: `${data.weekStart} - ${weekEnd.toISOString().split('T')[0]}`,
+            firewalllogs: data.firewalllogs,
+            sshlogs: data.sshlogs,
+            packets: data.packets
+          };
+        })
+        .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+    }
   }, [aggregatedData, timeRange]);
 
   const total = React.useMemo(() => ({
