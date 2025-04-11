@@ -1,12 +1,8 @@
 "use client";
 
 import {
-  BadgeCheck,
-  Bell,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
-  Sparkles,
 } from "lucide-react";
 
 import {
@@ -17,7 +13,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -40,6 +35,12 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+  
+  // Define role badge styles based on role
+  const isAdmin = user.role === 1;
+  const roleBadgeStyle = isAdmin
+    ? "bg-emerald-500 text-white dark:bg-emerald-600 dark:text-white shadow-sm"
+    : "bg-gray-500 text-white dark:bg-gray-600 dark:text-white shadow-sm";
 
   return (
     <SidebarMenu>
@@ -54,16 +55,18 @@ export function NavUser({
                 <AvatarFallback className="rounded-lg">
                   {user.name
                     .split(" ")
-                    .map((n) => n[0])
+                    .map((n) => n?.[0] || "")
                     .join("")}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className="truncate font-semibold">{user.name}</span>
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${roleBadgeStyle}`}>
+                    {isAdmin ? "ADMIN" : "USER"}
+                  </span>
+                </div>
                 <span className="truncate text-xs">{user.email}</span>
-                <span className="truncate text-xs">
-                  {user.role === 1 ? "Admin" : "User"}
-                </span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -80,19 +83,24 @@ export function NavUser({
                   <AvatarFallback className="rounded-lg">
                     {user.name
                       .split(" ")
-                      .map((n) => n[0])
+                      .map((n) => n?.[0] || "")
                       .join("")}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="truncate font-semibold">{user.name}</span>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${roleBadgeStyle}`}>
+                      {isAdmin ? "ADMIN" : "USER"}
+                    </span>
+                  </div>
                   <span className="truncate text-xs">{user.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <LogOut />
+              <LogOut className="mr-2 h-4 w-4" />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
