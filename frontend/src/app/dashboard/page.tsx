@@ -120,45 +120,6 @@ export default function Page() {
     fetchCountryConnection();
   }, []);
 
-  const barOptions = {
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          stepSize: 1,
-        },
-      },
-    },
-  };
-
-  const countryStats: Record<string, number> = {};
-  // devices.forEach((device) => {
-  //   device.ipAddresses?.forEach((ipObj) => {
-  //     countryStats[ipObj.country] = (countryStats[ipObj.country] || 0) + 1;
-  //   });
-  // });
-
-  const doughnutData = {
-    labels: Object.keys(countryStats),
-    datasets: [
-      {
-        data: Object.values(countryStats),
-        backgroundColor: [
-          "#facc15",
-          "#34d399",
-          "#60a5fa",
-          "#f472b6",
-          "#a78bfa",
-          "#f87171",
-        ],
-      },
-    ],
-  };
-
   return (
     <div className="[--header-height:calc(theme(spacing.14))]">
       <SidebarProvider className="flex flex-col">
