@@ -28,7 +28,7 @@ namespace GrpcClient
                 HttpHandler = httpHandler,
                 Credentials = ChannelCredentials.SecureSsl
             };
-            var channel = GrpcChannel.ForAddress("https://grpcdev-cyberscope.rickokkersen.nl", channelOptions);
+            var channel = GrpcChannel.ForAddress("https://grpc-cyberscope.rickokkersen.nl", channelOptions);
             var packetClient = new LogService.LogServiceClient(channel);
 
             var request = new WindowsLogRequest
