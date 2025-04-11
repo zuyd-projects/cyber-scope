@@ -20,6 +20,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', 'store');
         Route::put('/{device}', 'update');
         Route::delete('/{device}', 'destroy');
+        Route::get('/{device}/users', 'get_users');
+        Route::post('/{device}/add_user', 'add_user');
+        Route::post('/{device}/remove_user', 'remove_user');
     });
 
     Route::prefix('firewall_logs')->controller(\App\Http\Controllers\FirewallLogController::class)->group(function () {
@@ -47,5 +50,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('graph')->controller(\App\Http\Controllers\GraphController::class)->group(function () {
         Route::get('/countries_by_connections', 'countries_by_connections');
+        Route::get('/connections_over_time', 'connections_over_time');
     });
 });
