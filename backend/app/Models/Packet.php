@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Packet extends Model
 {
+    use \Illuminate\Database\Eloquent\Factories\HasFactory;
+
     protected $fillable = [
         'device_id',
         'source_address_id',

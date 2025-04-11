@@ -18,7 +18,7 @@ class SSHRequestFactory extends Factory
     {
         return [
             'device_id' => \App\Models\Device::inRandomOrder()->first()->id,
-            'source_address_id' => \App\Models\IPAddress::inRandomOrder()->first()->id,
+            'source_address_id' => \App\Models\IPAddress::where('is_local', false)->inRandomOrder()->first()->id,
             'captured_at' => $this->faker->dateTimeBetween('-1 month', 'now'),
             'process_name' => 'sshd'
         ];

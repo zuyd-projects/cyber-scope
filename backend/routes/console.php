@@ -55,3 +55,32 @@ Artisan::command('queue:stats', function () {
 Artisan::command('app:cleanup-data', function () {
     \App\Jobs\CleanupData::dispatch();
 })->purpose('Cleanup old data from the database');
+
+Artisan::command('app:seed {type} {amount} {device_id?}', function () {
+    switch ($this->argument('type')) {
+        case 'packets':
+            $amount = (int)$this->argument('amount');
+            $device_id = $this->argument('device_id') ? (int)$this->argument('device_id') : null;
+            \App\Models\Packet::withoutEvents(function () use ($amount, $device_id) {
+                \App\Models\Packet::factory($amount)->create(['device_id' => $device_id]);
+            });
+            break;
+        case 'ssh_requests':
+            $amount = (int)$this->argument('amount');
+            $device_id = $this->argument('device_id') ? (int)$this->argument('device_id') : null;
+            \App\Models\SSHRequest::withoutEvents(function () use ($amount, $device_id) {
+                \App\Models\SSHRequest::factory($amount)->create(['device_id' => $device_id]);
+            });
+            break;
+        case 'win_firewall_logs':
+            $amount = (int)$this->argument('amount');
+            $device_id = $this->argument('device_id') ? (int)$this->argument('device_id') : null;
+            \App\Models\WinFirewallLog::withoutEvents(function () use ($amount, $device_id) {
+                \App\Models\WinFirewallLog::factory($amount)->create(['device_id' => $device_id]);
+            });
+            break;
+        default:
+            $this->error('Invalid type. Use "packets", "ssh_requests" or "win_firewall_logs".');
+            return;
+    }
+});
