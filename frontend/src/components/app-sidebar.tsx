@@ -13,7 +13,8 @@ import {
   Settings2,
   SquareTerminal,
   Globe,
-  Rocket
+  Rocket,
+  MapIcon
 } from "lucide-react"
 import Image from "next/image"
 
@@ -37,6 +38,12 @@ const navItems = [
     title: "Dashboard",
     url: "/dashboard",
     icon: SquareTerminal,
+    isActive: true,
+  },
+  {
+    title: "Traffic Map",
+    url: "/trafficview",
+    icon: MapIcon,
     isActive: true,
   },
   {
