@@ -63,4 +63,56 @@ class DeviceController extends Controller
         $device->delete();
         return response()->json(['message' => 'Device deleted successfully']);
     }
+
+    public function add_user($id,Request $request)
+    {
+        $device = \App\Models\Device::find($id);
+        if (!$device) {
+            return response()->json(['message' => 'Device not found'], 404);
+        }
+
+        if ($request->user()->cannot('update', $device)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'email' => 'required|exists:users,email',
+        ]);
+
+        $user = \App\Models\User::where('email', $validated['email'])->first();
+
+        if ($device->users()->where('user_id', $user->id)->exists() || $user->is_admin) {
+            return response()->json(['message' => 'User already added to device'], 409);
+        }
+
+        $device->users()->attach($user);
+        return response()->json(['message' => 'User added to device successfully']);
+    }
+
+    public function remove_user($id,Request $request)
+    {
+        $device = \App\Models\Device::find($id);
+        if (!$device) {
+            return response()->json(['message' => 'Device not found'], 404);
+        }
+
+        if ($request->user()->cannot('update', $device)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'email' => 'required|exists:users,email',
+        ]);
+
+        $user = \App\Models\User::where('email', $validated['email'])->first();
+        if ($user->is_admin) {
+            return response()->json(['message' => 'Cannot remove admin user'], 403);
+        }
+        
+        if (!$device->users()->where('user_id', $user->id)->exists()) {
+            return response()->json(['message' => 'User not found on device'], 404);
+        }
+        $device->users()->detach($user);
+        return response()->json(['message' => 'User removed from device successfully']);
+    }
 }

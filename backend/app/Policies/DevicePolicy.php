@@ -40,6 +40,7 @@ class DevicePolicy
      */
     public function update(User $user, Device $device): bool
     {
+        if ($user->is_admin) return true;
         return false;
     }
 
