@@ -75,25 +75,20 @@ export function LoginForm({
                   />
                 </div>
                 <div className="grid gap-2">
-                  <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
-                    <a
-                      href="#"
-                      className="ml-auto text-sm underline-offset-4 hover:underline"
-                    >
-                      Forgot your password?
-                    </a>
-                  </div>
+                  <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
                     type="password"
+                    placeholder="********"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </div>
                 {error && (
-                  <div className="text-sm text-red-500 text-center">{error}</div>
+                  <div className="text-sm text-red-500 text-center">
+                    {error}
+                  </div>
                 )}
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Logging in..." : "Login"}
@@ -101,7 +96,10 @@ export function LoginForm({
               </div>
               <div className="text-center text-sm">
                 Don&apos;t have an account?{" "}
-                <a href="#" className="underline underline-offset-4">
+                <a
+                  onClick={() => router.push("/signup")}
+                  className="underline underline-offset-4 cursor-pointer"
+                >
                   Sign up
                 </a>
               </div>
@@ -110,9 +108,8 @@ export function LoginForm({
         </CardContent>
       </Card>
       <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
+        By clicking continue, you agree to our <a href="#">Privacy Policy</a>.
       </div>
     </div>
-  )
+  );
 }
