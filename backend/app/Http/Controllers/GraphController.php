@@ -121,7 +121,7 @@ class GraphController extends Controller
             })
             ->select(
                 DB::raw("DATE_FORMAT(captured_at, '%Y-%m-%dT%H:00:00Z') as time"),
-                DB::raw('SUM(size) as total_connections')
+                DB::raw('COUNT(*) as total_connections')
             )
             ->groupBy('time')
             ->orderBy('time')
