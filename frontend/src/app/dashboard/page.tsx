@@ -23,7 +23,7 @@ import { SshLogsSection } from "@cyberscope/components/dashboard/SshLogsSection"
 import { ChartsSection } from "@cyberscope/components/dashboard/ChartsSection";
 import { InteractiveBarChart } from "@cyberscope/components/dashboard/ChartLogSection";
 import { WorldView } from "../../components/dashboard/WorldView";
-import { api } from "@cyberscope/lib/api";
+import { api, useProfile, isAdmin } from "@cyberscope/lib/api";
 import {
   FirewallLog,
   SSHLog,
@@ -41,6 +41,7 @@ ChartJS.register(
 );
 
 export default function Page() {
+  const { profile, isLoading } = useProfile();
   const router = useRouter();
   const [devices, setDevices] = useState<Device[]>([]);
   const [firewall_logs, setFirewallLogs] = useState<FirewallLog[]>([]);
@@ -165,26 +166,39 @@ export default function Page() {
         <div className="flex flex-1">
           <AppSidebar />
           <SidebarInset>
-            <div className="flex flex-1 flex-col gap-4 p-4">
-              <DeviceSection
-                devices={devices}
-                selectedDevice={selectedDevice}
-                setSelectedDevice={setSelectedDevice}
-              />
-              <WorldView />
-              <FirewallLogsSection logs={firewall_logs} devices={devices} />
-              <SshLogsSection logs={ssh_logs} devices={devices} />
-              <div className="flex flex-1 flex-col gap-4">
-                <InteractiveBarChart
-                  firewallLogs={firewall_logs}
-                  sshLogs={ssh_logs}
+            {isLoading ? (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-lg">Loading...</p>
+              </div>
+            ) : isAdmin(profile) ? (
+              <div className="flex flex-1 flex-col gap-4 p-4">
+                <DeviceSection
+                  devices={devices}
+                  selectedDevice={selectedDevice}
+                  setSelectedDevice={setSelectedDevice}
+                />
+                <WorldView />
+                <FirewallLogsSection logs={firewall_logs} devices={devices} />
+                <SshLogsSection logs={ssh_logs} devices={devices} />
+                <div className="flex flex-1 flex-col gap-4">
+                  <InteractiveBarChart
+                    firewallLogs={firewall_logs}
+                    sshLogs={ssh_logs}
+                  />
+                </div>
+                <ChartsSection
+                  inbound={inboundConnections}
+                  outbound={outboundConnections}
                 />
               </div>
-              <ChartsSection
-                inbound={inboundConnections}
-                outbound={outboundConnections}
-              />
-            </div>
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center p-4">
+                <h2 className="text-2xl font-bold">Access Restricted</h2>
+                <p className="mt-2 text-gray-500">
+                  You need administrator privileges to view this dashboard.
+                </p>
+              </div>
+            )}
           </SidebarInset>
         </div>
       </SidebarProvider>

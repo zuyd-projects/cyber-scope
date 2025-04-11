@@ -57,6 +57,11 @@ export const logout = () => {
 	window.location.href = "/login";
 };
 
+// Check if user is admin (role = 1)
+export const isAdmin = (profile: any) => {
+	return profile?.role === 1;
+};
+
 // SWR fetcher using axios
 const fetcher = (url: string) => api.get(url).then((res) => res.data);
 
