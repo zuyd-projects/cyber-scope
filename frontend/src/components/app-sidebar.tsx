@@ -30,31 +30,36 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@cyberscope/components/ui/sidebar"
-import { isCancel } from "axios"
+import { useProfile, isAdmin } from "@cyberscope/lib/api"
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+const navItems = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: SquareTerminal,
+    isActive: true,
   },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "http://localhost:3000/dashboard",
-      icon: SquareTerminal,
-      isActive: true,
-    },
-    {
-      title: "Deployment",
-      url: "http://localhost:3000/deployment",
-      icon: Rocket,
-      isActive: true,
-    },
-  ],
-}
+  {
+    title: "Deployment",
+    url: "/deployment",
+    icon: Rocket,
+    isActive: true,
+  },
+]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { profile, isLoading } = useProfile();
+  
+  // Default user data while loading
+  const userData = profile ? {
+    name: profile.name || "User",
+    email: profile.email || "",
+    is_admin: profile.is_admin
+  } : {
+    name: "Loading...",
+    email: "",
+  };
+  
   return (
     <Sidebar
       className="top-[--header-height] !h-[calc(100svh-var(--header-height))]"
@@ -75,7 +80,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">CyberScope</span>
-                  <span className="truncate text-xs">Zuyd Hogeschool</span>
+                  <span className="truncate text-xs">
+                    {isAdmin(profile) ? "Admin Access" : "User Access"}
+                  </span>
                 </div>
               </a>
             </SidebarMenuButton>
@@ -83,10 +90,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userData} />
       </SidebarFooter>
     </Sidebar>
   )
