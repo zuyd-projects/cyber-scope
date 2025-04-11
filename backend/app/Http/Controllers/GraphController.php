@@ -79,7 +79,7 @@ class GraphController extends Controller
             ->leftJoin('geo_locations', 'ip_addresses.geo_location_id', '=', 'geo_locations.id')
             ->groupBy('geo_locations.country_name', 'geo_locations.country_code')
             ->orderBy('total_connections', 'desc')
-            ->toSql();
+            ->get();
 
         return response()->json([
             'inbound' => $inboundConnections,
