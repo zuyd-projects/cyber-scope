@@ -50,6 +50,11 @@ class Device extends Model
         }
     }
 
+    public function users()
+    {
+        return $this->belongsToMany(User::class);
+    }
+
     public function packets()
     {
         return $this->hasMany(Packet::class);

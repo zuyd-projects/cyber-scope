@@ -14,6 +14,11 @@ class PacketController extends Controller
             ->when($device_id, function ($query) use ($device_id) {
                 $query->where('device_id', $device_id);
             })
+            ->whereHas('device', function ($query) use ($request) {
+                if ($request->user()->cannot('viewAny', \App\Models\Device::class)) {
+                    $query->whereIn('devices.id', $request->user()->devices()->pluck('devices.id'));
+                }
+            })
             ->orderBy('captured_at', $request->query('order', 'asc'))
             ->simplePaginate($paginate);
         return response()->json($firewallLogs);
@@ -21,6 +26,12 @@ class PacketController extends Controller
 
     public function per_device($id, Request $request)
     {
+        if ($request->user()->cannot('viewAny', \App\Models\Device::class)) {
+            $request->user()->devices()->where('devices.id', $id)->firstOrFail();
+            if ($request->user()->cannot('view', \App\Models\Device::class)) {
+                abort(403, 'You cannot view this device');
+            }
+        }
         return $this->index($request, $id);
     }
 }

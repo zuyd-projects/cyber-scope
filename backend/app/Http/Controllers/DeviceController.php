@@ -6,9 +6,14 @@ use Illuminate\Http\Request;
 
 class DeviceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $devices = \App\Models\Device::all();
+        if ($request->user()->can('viewAny', \App\Models\Device::class)) {
+            $devices = \App\Models\Device::all();
+        } else {
+            $devices = $request->user()->devices()->get();
+        }
+        
         return response()->json($devices);
     }
 
