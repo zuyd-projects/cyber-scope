@@ -29,6 +29,7 @@ import {
   SSHLog,
   Device,
   CountryConnection,
+  AggregatedData,
 } from "@cyberscope/types";
 
 ChartJS.register(
@@ -53,6 +54,9 @@ export default function Page() {
   const [outboundConnections, setOutboundConnections] = useState<
     CountryConnection[]
   >([]);
+  const [connectionsOverTime, setConnectionsOverTime] = useState<
+    AggregatedData | null
+  >(null);
 
   // 🔒 Redirect if no access token
   useEffect(() => {
@@ -120,6 +124,23 @@ export default function Page() {
     fetchCountryConnection();
   }, []);
 
+  useEffect(() => {
+    const fetchConnectionsOverTime = async () => {
+      try {
+        const response = await api.get("/graph/connections_over_time");
+        if (response.status !== 200)
+          throw new Error("Failed to fetch connections over time");
+
+      setConnectionsOverTime(response.data);
+      }
+      catch (error) {
+        console.error("Error fetching connections over time:", error);
+      }
+    }
+    fetchConnectionsOverTime();
+  }
+  , []);
+
   return (
     <div className="[--header-height:calc(theme(spacing.14))]">
       <SidebarProvider className="flex flex-col">
@@ -132,6 +153,7 @@ export default function Page() {
                 <p className="text-lg">Loading...</p>
               </div>
             ) : isAdmin(profile) ? (
+              // Admin view - show all components regardless of data availability
               <div className="flex flex-1 flex-col gap-4 p-4">
                 <DeviceSection
                   devices={devices}
@@ -141,23 +163,70 @@ export default function Page() {
                 <WorldView />
                 <FirewallLogsSection logs={firewall_logs} devices={devices} />
                 <SshLogsSection logs={ssh_logs} devices={devices} />
-                <div className="flex flex-1 flex-col gap-4">
-                  <InteractiveBarChart
-                    firewallLogs={firewall_logs}
-                    sshLogs={ssh_logs}
-                  />
-                </div>
+                {connectionsOverTime && (
+                  <div className="flex flex-1 flex-col gap-4">
+                    <InteractiveBarChart
+                      aggregatedData={connectionsOverTime}
+                    />
+                  </div>
+                )}
                 <ChartsSection
                   inbound={inboundConnections}
                   outbound={outboundConnections}
                 />
               </div>
             ) : (
-              <div className="flex h-full flex-col items-center justify-center p-4">
-                <h2 className="text-2xl font-bold">Access Restricted</h2>
-                <p className="mt-2 text-gray-500">
-                  You need administrator privileges to view this dashboard.
-                </p>
+              // Non-admin view - only show components when relevant data is available
+              <div className="flex flex-1 flex-col gap-4 p-4">
+                {/* Devices are always shown, filtered by user access */}
+                <DeviceSection
+                  devices={devices}
+                  selectedDevice={selectedDevice}
+                  setSelectedDevice={setSelectedDevice}
+                />
+                
+                {/* Only show world view if there's connection data */}
+                {(inboundConnections.length > 0 || outboundConnections.length > 0) && (
+                  <WorldView />
+                )}
+                
+                {/* Only show firewall logs section if there are logs */}
+                {firewall_logs.length > 0 && (
+                  <FirewallLogsSection logs={firewall_logs} devices={devices} />
+                )}
+                
+                {/* Only show SSH logs section if there are logs */}
+                {ssh_logs.length > 0 && (
+                  <SshLogsSection logs={ssh_logs} devices={devices} />
+                )}
+                
+                {/* Only show interactive chart if there are logs */}
+                {connectionsOverTime && (
+                  <div className="flex flex-1 flex-col gap-4">
+                  <InteractiveBarChart
+                   aggregatedData={connectionsOverTime}
+                  />
+                </div>
+                )}
+                
+                {/* Only show charts section if there's connection data */}
+                {(inboundConnections.length > 0 || outboundConnections.length > 0) && (
+                  <ChartsSection
+                    inbound={inboundConnections}
+                    outbound={outboundConnections}
+                  />
+                )}
+                
+                {/* Show a message if no data is available at all */}
+                {devices.length === 0 && 
+                 firewall_logs.length === 0 && 
+                 ssh_logs.length === 0 && 
+                 inboundConnections.length === 0 && 
+                 outboundConnections.length === 0 && (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-lg text-gray-500">No data available for your account.</p>
+                  </div>
+                )}
               </div>
             )}
           </SidebarInset>

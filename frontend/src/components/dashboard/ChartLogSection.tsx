@@ -15,68 +15,171 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "../ui/chart"
-import { FirewallLog, SSHLog } from "@cyberscope/types"
 
-interface Props {
-  firewallLogs: FirewallLog[]
-  sshLogs: SSHLog[]
+// Chart data types
+export interface AggregatedData {
+  firewalllogs?: Record<string, number>;
+  sshlogs?: Record<string, number>;
+  packets?: Record<string, number>;
 }
 
-export function InteractiveBarChart({ firewallLogs = [], sshLogs = [] }: Props) {
-  const [activeChart, setActiveChart] = React.useState<"firewall" | "ssh">("firewall")
-  const [timeRange, setTimeRange] = React.useState<"hour" | "day" | "week">("day")
+interface Props {
+  aggregatedData: AggregatedData;
+}
 
-  const aggregatedData = React.useMemo(() => {
-    const formatKey = (date: Date) => {
-      if (timeRange === "hour") {
-        return `${date.toISOString().split("T")[0]} ${date.getHours()}:00`
-      } else if (timeRange === "week") {
-        const weekStart = new Date(date)
-        weekStart.setDate(weekStart.getDate() - weekStart.getDay()) // Sunday start
-        return `Week of ${weekStart.toISOString().split("T")[0]}`
-      } else {
-        return date.toISOString().split("T")[0]
-      }
+export function InteractiveBarChart({ aggregatedData = {} }: Props) {
+  // Set initial active chart to the first available data type
+  const availableChartTypes = React.useMemo(() => {
+    const types: Array<"firewalllogs" | "sshlogs" | "packets"> = [];
+    if (aggregatedData.firewalllogs && Object.keys(aggregatedData.firewalllogs).length > 0) types.push("firewalllogs");
+    if (aggregatedData.sshlogs && Object.keys(aggregatedData.sshlogs).length > 0) types.push("sshlogs");
+    if (aggregatedData.packets && Object.keys(aggregatedData.packets).length > 0) types.push("packets");
+    return types;
+  }, [aggregatedData]);
+
+  const [activeChart, setActiveChart] = React.useState<"firewalllogs" | "sshlogs" | "packets">(
+    availableChartTypes[0] || "sshlogs"
+  );
+  const [timeRange, setTimeRange] = React.useState<"hour" | "day" | "week">("hour")
+
+  // Ensure activeChart is valid whenever availableChartTypes changes
+  React.useEffect(() => {
+    if (availableChartTypes.length > 0 && !availableChartTypes.includes(activeChart)) {
+      setActiveChart(availableChartTypes[0]);
     }
+  }, [availableChartTypes, activeChart]);
 
-    const countByTime = new Map<string, { firewall: number; ssh: number }>()
+  const chartData = React.useMemo(() => {
+    const { firewalllogs = {}, sshlogs = {}, packets = {} } = aggregatedData;
+    
+    // First, get all timestamps
+    const allTimestamps = [
+      ...Object.keys(firewalllogs),
+      ...Object.keys(sshlogs),
+      ...Object.keys(packets)
+    ].filter((value, index, self) => self.indexOf(value) === index)
+      .sort();
+    
+    if (timeRange === "hour") {
+      // For hourly data, keep original timestamp format
+      return allTimestamps.map(timestamp => {
+        const date = new Date(timestamp);
+        const label = `${date.toISOString().split("T")[0]} ${date.getHours()}:00`;
+        
+        return {
+          timestamp,
+          label,
+          firewalllogs: firewalllogs[timestamp] || 0,
+          sshlogs: sshlogs[timestamp] || 0,
+          packets: packets[timestamp] || 0
+        };
+      });
+    } else if (timeRange === "day") {
+      // Group by day
+      const dailyData: Record<string, {
+        firewalllogs: number;
+        sshlogs: number;
+        packets: number;
+      }> = {};
+      
+      allTimestamps.forEach(timestamp => {
+        const date = new Date(timestamp);
+        const dayKey = date.toISOString().split('T')[0];
+        
+        if (!dailyData[dayKey]) {
+          dailyData[dayKey] = { firewalllogs: 0, sshlogs: 0, packets: 0 };
+        }
+        
+        dailyData[dayKey].firewalllogs += firewalllogs[timestamp] || 0;
+        dailyData[dayKey].sshlogs += sshlogs[timestamp] || 0;
+        dailyData[dayKey].packets += packets[timestamp] || 0;
+      });
+      
+      return Object.entries(dailyData)
+        .map(([day, counts]) => ({
+          timestamp: day,
+          label: day,
+          ...counts
+        }))
+        .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+    } else {
+      // Group by week
+      const weeklyData: Record<string, {
+        firewalllogs: number;
+        sshlogs: number;
+        packets: number;
+        weekStart: string;
+      }> = {};
+      
+      allTimestamps.forEach(timestamp => {
+        const date = new Date(timestamp);
+        
+        // Get ISO week - this ensures consistent week boundaries
+        // First, get the year and week number
+        const yearStart = new Date(date.getFullYear(), 0, 1);
+        const days = Math.floor((date.getTime() - yearStart.getTime()) / (24 * 60 * 60 * 1000));
+        const weekNumber = Math.ceil((days + 1 + yearStart.getDay()) / 7);
+        
+        // Create a consistent key based on year and week
+        const weekKey = `${date.getFullYear()}-W${weekNumber.toString().padStart(2, '0')}`;
+        
+        // Calculate the first day of this ISO week
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - date.getDay() + (date.getDay() === 0 ? -6 : 1)); // Monday as week start
+        weekStart.setHours(0, 0, 0, 0);
+        
+        if (!weeklyData[weekKey]) {
+          weeklyData[weekKey] = { 
+            firewalllogs: 0, 
+            sshlogs: 0, 
+            packets: 0,
+            weekStart: weekStart.toISOString().split('T')[0]
+          };
+        }
+        
+        weeklyData[weekKey].firewalllogs += firewalllogs[timestamp] || 0;
+        weeklyData[weekKey].sshlogs += sshlogs[timestamp] || 0;
+        weeklyData[weekKey].packets += packets[timestamp] || 0;
+      });
+      
+      return Object.entries(weeklyData)
+        .map(([weekKey, data]) => {
+          // Calculate the end of the week (7 days from start)
+          const weekStart = new Date(data.weekStart);
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekStart.getDate() + 6);
+          
+          return {
+            timestamp: weekKey,
+            label: `${data.weekStart} - ${weekEnd.toISOString().split('T')[0]}`,
+            firewalllogs: data.firewalllogs,
+            sshlogs: data.sshlogs,
+            packets: data.packets
+          };
+        })
+        .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+    }
+  }, [aggregatedData, timeRange]);
 
-    firewallLogs.forEach(log => {
-      const date = new Date(log.captured_at)
-      const key = formatKey(date)
-      if (!countByTime.has(key)) countByTime.set(key, { firewall: 0, ssh: 0 })
-      countByTime.get(key)!.firewall++
-    })
-
-    sshLogs.forEach(log => {
-      const date = new Date(log.captured_at)
-      const key = formatKey(date)
-      if (!countByTime.has(key)) countByTime.set(key, { firewall: 0, ssh: 0 })
-      countByTime.get(key)!.ssh++
-    })
-
-    return Array.from(countByTime.entries())
-      .map(([label, counts]) => ({ label, ...counts }))
-      .sort((a, b) => new Date(a.label).getTime() - new Date(b.label).getTime())
-  }, [firewallLogs, sshLogs, timeRange])
-
-  const total = aggregatedData.reduce(
-    (acc, curr) => ({
-      firewall: acc.firewall + curr.firewall,
-      ssh: acc.ssh + curr.ssh,
-    }),
-    { firewall: 0, ssh: 0 }
-  )
+  const total = React.useMemo(() => ({
+    firewalllogs: Object.values(aggregatedData.firewalllogs || {}).reduce((sum, value) => sum + value, 0),
+    sshlogs: Object.values(aggregatedData.sshlogs || {}).reduce((sum, value) => sum + value, 0),
+    packets: Object.values(aggregatedData.packets || {}).reduce((sum, value) => sum + value, 0),
+  }), [aggregatedData]);
 
   const chartConfig = {
-    firewall: {
+    firewalllogs: {
       label: "Firewall Logs",
       color: "#f87171",
     },
-    ssh: {
+    sshlogs: {
       label: "SSH Logs",
       color: "#60a5fa",
     },
+    packets: {
+      label: "Network Packets",
+      color: "#34d399",
+    }
   } satisfies ChartConfig
 
   return (
@@ -98,7 +201,7 @@ export function InteractiveBarChart({ firewallLogs = [], sshLogs = [] }: Props) 
             <option value="day">Daily</option>
             <option value="week">Weekly</option>
           </select>
-          {(["firewall", "ssh"] as const).map(key => (
+          {availableChartTypes.map(key => (
             <button
               key={key}
               data-active={activeChart === key}
@@ -118,7 +221,7 @@ export function InteractiveBarChart({ firewallLogs = [], sshLogs = [] }: Props) 
         <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
           <BarChart
             accessibilityLayer
-            data={aggregatedData}
+            data={chartData}
             margin={{ left: 12, right: 12 }}
           >
             <CartesianGrid vertical={false} />

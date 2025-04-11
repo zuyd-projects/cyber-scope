@@ -58,6 +58,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   } : {
     name: "Loading...",
     email: "",
+    is_admin: 0
   };
   
   return (
