@@ -12,9 +12,9 @@ class GraphController extends Controller
         if ($request->user()->is_admin) {
             $userDeviceIds = $request->query('device_id', null);
         } else {
-            $userDeviceIds = $request->user()->devices->pluck('id');
+            $userDeviceIds = $request->user()->devices->pluck('id')->toArray();
             if ($request->query('device_id')) {
-                $userDeviceIds = $request->user()->devices->where('id', $request->query('device_id'))->pluck('id');
+                $userDeviceIds = $request->user()->devices->where('id', $request->query('device_id'))->pluck('id')->toArray();
             }
         }
 
