@@ -9,7 +9,18 @@ class GraphController extends Controller
 {
     public function countries_by_connections(Request $request)
     {
-        $userDeviceIds = $request->user()->is_admin ? null : $request->user()->devices->pluck('id');
+        if ($request->user()->is_admin) {
+            $userDeviceIds = $request->query('device_id', null);
+        } else {
+            $userDeviceIds = $request->user()->devices->pluck('id');
+            if ($request->query('device_id')) {
+                $userDeviceIds = $request->user()->devices->where('id', $request->query('device_id'))->pluck('id');
+            }
+        }
+
+        if ($userDeviceIds && !is_array($userDeviceIds)) {
+            $userDeviceIds = [$userDeviceIds];
+        }
 
         $inboundConnections = DB::table(function ($query) use ($userDeviceIds) {
             $query->select(
@@ -69,7 +80,7 @@ class GraphController extends Controller
             ->select(
                 'geo_locations.country_name',
                 'geo_locations.country_code',
-                DB::raw('SUM(size) as total_connections')
+                DB::raw('COUNT(*) as total_connections')
             )
             ->join('ip_addresses', 'packets.destination_address_id', '=', 'ip_addresses.id')
             ->where('ip_addresses.is_local', false)
