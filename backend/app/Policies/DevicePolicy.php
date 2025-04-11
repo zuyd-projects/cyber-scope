@@ -28,6 +28,15 @@ class DevicePolicy
     }
 
     /**
+     * Determine whether the user can view the users connected to the model.
+     */
+    public function viewUsers(User $user, Device $device): bool
+    {
+        if ($user->is_admin) return true;
+        return false;
+    }
+
+    /**
      * Determine whether the user can create models.
      */
     public function create(User $user): bool

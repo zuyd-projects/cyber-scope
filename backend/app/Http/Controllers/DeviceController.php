@@ -108,11 +108,26 @@ class DeviceController extends Controller
         if ($user->is_admin) {
             return response()->json(['message' => 'Cannot remove admin user'], 403);
         }
-        
+
         if (!$device->users()->where('user_id', $user->id)->exists()) {
             return response()->json(['message' => 'User not found on device'], 404);
         }
         $device->users()->detach($user);
         return response()->json(['message' => 'User removed from device successfully']);
+    }
+
+    public function get_users($id,Request $request)
+    {
+        $device = \App\Models\Device::find($id);
+        if (!$device) {
+            return response()->json(['message' => 'Device not found'], 404);
+        }
+
+        if ($request->user()->cannot('viewUsers', $device)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $users = $device->users()->get();
+        return response()->json($users);
     }
 }

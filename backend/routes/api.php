@@ -20,6 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', 'store');
         Route::put('/{device}', 'update');
         Route::delete('/{device}', 'destroy');
+        Route::get('/{device}/users', 'get_users');
         Route::post('/{device}/add_user', 'add_user');
         Route::post('/{device}/remove_user', 'remove_user');
     });
