@@ -45,3 +45,9 @@ export type CountryConnection = {
   country_code: string;
   total_connections: number;
 };
+
+export interface AggregatedData {
+  firewalllogs?: Record<string, number>;
+  sshlogs?: Record<string, number>;
+  packets?: Record<string, number>;
+}
