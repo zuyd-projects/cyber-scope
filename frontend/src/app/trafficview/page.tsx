@@ -85,22 +85,54 @@ export default function Page() {
     fetchCountryConnections("any");
   }, [dateFilter]); // Update when filters change
 
-  // Calculate total connections
-  const totalInbound = inboundConnections.reduce(
+  // Filter out countries with empty names or "-" first
+  const validInboundConnections = inboundConnections.filter(conn => 
+    conn.country_name && conn.country_name !== "" && conn.country_name !== "-"
+  );
+
+  const validOutboundConnections = outboundConnections.filter(conn => 
+    conn.country_name && conn.country_name !== "" && conn.country_name !== "-"
+  );
+
+  // Filter connections by country for display
+  const filteredInboundConnections = validInboundConnections.filter(conn => 
+    countryFilter ? 
+      conn.country_name?.toLowerCase().includes(countryFilter.toLowerCase()) || 
+      conn.country_code?.toLowerCase().includes(countryFilter.toLowerCase())
+    : true
+  );
+
+  const filteredOutboundConnections = validOutboundConnections.filter(conn => 
+    countryFilter ? 
+      conn.country_name?.toLowerCase().includes(countryFilter.toLowerCase()) || 
+      conn.country_code?.toLowerCase().includes(countryFilter.toLowerCase())
+    : true
+  );
+
+  // Calculate total connections from the valid data (not filtered by user input)
+  const originalTotalInbound = validInboundConnections.reduce(
     (sum, conn) => sum + Number(conn.total_connections),
     0
   );
-  const totalOutbound = outboundConnections.reduce(
+  
+  const originalTotalOutbound = validOutboundConnections.reduce(
+    (sum, conn) => sum + Number(conn.total_connections),
+    0
+  );
+
+  // Calculate filtered totals for display
+  const totalInbound = filteredInboundConnections.reduce(
+    (sum, conn) => sum + Number(conn.total_connections),
+    0
+  );
+  
+  const totalOutbound = filteredOutboundConnections.reduce(
     (sum, conn) => sum + Number(conn.total_connections),
     0
   );
 
   // Helper to download CSV
-  const downloadCSV = (data: CountryConnection[], filename: string) => {
-    const total = data.reduce(
-      (sum, row) => sum + Number(row.total_connections),
-      0
-    );
+  const downloadCSV = (data: CountryConnection[], filename: string, originalTotal: number) => {
     const header = [
       "Country",
       "Country Code",
@@ -109,7 +141,7 @@ export default function Page() {
     ];
     const rows = data.map((row) => {
       const value = Number(row.total_connections);
-      const percent = ((value / total) * 100).toFixed(1) + "%";
+      const percent = ((value / originalTotal) * 100).toFixed(1) + "%";
       return [
         row.country_name || "Unknown",
         row.country_code || "??",
@@ -200,7 +232,7 @@ export default function Page() {
                         {totalInbound.toLocaleString()}
                       </div>
                       <div className="text-muted-foreground">
-                        From {inboundConnections.length} countries
+                        From {filteredInboundConnections.length} countries
                       </div>
                     </CardContent>
                   </Card>
@@ -216,7 +248,7 @@ export default function Page() {
                         {totalOutbound.toLocaleString()}
                       </div>
                       <div className="text-muted-foreground">
-                        To {outboundConnections.length} countries
+                        To {filteredOutboundConnections.length} countries
                       </div>
                     </CardContent>
                   </Card>
@@ -256,13 +288,12 @@ export default function Page() {
                       <div className="grid grid-cols-1 gap-4 mb-6">
                         <div>
                           <div className="flex flex-wrap gap-2">
-                            {inboundConnections.map((country, index) => {
+                            {filteredInboundConnections.map((country, index) => {
                               // Calculate intensity (0-1) for visual representation
-                              const intensity =
-                                totalInbound > 0
-                                  ? Number(country.total_connections) /
-                                    totalInbound
-                                  : 0;
+                              const intensity = originalTotalInbound > 0
+                                ? Number(country.total_connections) /
+                                  originalTotalInbound
+                                : 0;
 
                               // Generate color based on intensity (green to red) - matching the legend
                               const hue = Math.max(0, 120 - intensity * 120);
@@ -386,13 +417,12 @@ export default function Page() {
                         <h1 className="font-semibold -mb-2">Outbound:</h1>
                         <div>
                           <div className="flex flex-wrap gap-2">
-                            {outboundConnections.map((country, index) => {
+                            {filteredOutboundConnections.map((country, index) => {
                               // Calculate intensity for visual representation
-                              const intensity =
-                                totalOutbound > 0
-                                  ? Number(country.total_connections) /
-                                    totalOutbound
-                                  : 0;
+                              const intensity = originalTotalOutbound > 0
+                                ? Number(country.total_connections) /
+                                  originalTotalOutbound
+                                : 0;
 
                               // Generate color based on intensity (blue to purple)
                               const hue = 240 - intensity * 60;
@@ -402,7 +432,7 @@ export default function Page() {
                               return (
                                 <div
                                   key={index}
-                                  className="flex flex-col items-center border rounded p-2 cursor-pointer hover:shadow-md transition-shadow"
+                                  className="flex flex-col items-center border rounded p-2 cursor-pointer hover:shadow-md transition-shadow group relative"
                                   style={{
                                     backgroundColor: `hsla(${hue}, ${saturation}%, ${lightness}%, ${Math.max(
                                       0.2,
@@ -414,12 +444,61 @@ export default function Page() {
                                     )}px`,
                                     color: intensity > 0.5 ? "white" : "black",
                                   }}
-                                  title={`${country.country_name}: ${Number(
-                                    country.total_connections
-                                  ).toLocaleString()} connections (${(
-                                    intensity * 100
-                                  ).toFixed(1)}%)`}
                                 >
+                                  {/* Tooltip for outbound connections */}
+                                  <div
+                                    className="absolute -translate-y-full mt-[-8px] p-2 bg-black bg-opacity-90 text-white text-xs rounded shadow-lg z-50 opacity-0 group-hover:opacity-100 pointer-events-none"
+                                    style={{
+                                      left: "calc(50% + var(--x, 0px))",
+                                      top: "calc(50% + var(--y, 0px))",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      // Get tooltip dimensions
+                                      const tooltip = e.currentTarget;
+                                      const rect = tooltip.getBoundingClientRect();
+
+                                      // Adjust position if outside viewport
+                                      let offsetX = 0;
+                                      let offsetY = 0;
+
+                                      if (rect.left < 0) offsetX = -rect.left + 10;
+                                      if (rect.right > window.innerWidth)
+                                        offsetX = window.innerWidth - rect.right - 10;
+                                      if (rect.top < 0) offsetY = -rect.top + 10;
+
+                                      // Apply offsets
+                                      tooltip.style.setProperty("--x", `${offsetX}px`);
+                                      tooltip.style.setProperty("--y", `${offsetY}px`);
+                                    }}
+                                  >
+                                    <div className="font-bold mb-1 border-b pb-1 flex items-center gap-2">
+                                      {country.country_code && (
+                                        <ReactCountryFlag
+                                          countryCode={country.country_code}
+                                          style={{
+                                            width: "1.5em",
+                                            height: "1.5em",
+                                          }}
+                                          svg
+                                          className="rounded-sm"
+                                        />
+                                      )}
+                                      {country.country_name || "Unknown"}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-1 w-44">
+                                      <span className="text-gray-300">Connections:</span>
+                                      <span className="font-mono text-right">
+                                        {Number(country.total_connections).toLocaleString()}
+                                      </span>
+                                      <span className="text-gray-300">Percentage:</span>
+                                      <span className="font-mono text-right">
+                                        {(intensity * 100).toFixed(2)}%
+                                      </span>
+                                      <span className="text-gray-300">Ranking:</span>
+                                      <span className="font-mono text-right">#{index + 1}</span>
+                                    </div>
+                                  </div>
+
                                   <div className="flex items-center gap-1 mb-1">
                                     {country.country_code && (
                                       <ReactCountryFlag
@@ -446,9 +525,9 @@ export default function Page() {
                         </div>
                       </div>
 
-                      <div className="flex justify-between items-center mt-2 px-2">
-                        <div className="flex items-center gap-2 -mt-4">
-                          <span className="text-xs">Traffic Legend:</span>
+                      <div className="flex justify-between items-center mt-6 px-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs">Traffic Legend (Inbound):</span>
                           <div className="flex items-center gap-1">
                             <div
                               className="w-4 h-4 rounded"
@@ -478,6 +557,40 @@ export default function Page() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Traffic Legend for Outbound */}
+                      <div className="flex justify-between items-center mt-2 px-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs">Traffic Legend (Outbound):</span>
+                          <div className="flex items-center gap-1">
+                            <div
+                              className="w-4 h-4 rounded"
+                              style={{
+                                backgroundColor: "hsla(240, 70%, 50%, 0.3)",
+                              }}
+                            ></div>
+                            <span className="text-xs">Low</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div
+                              className="w-4 h-4 rounded"
+                              style={{
+                                backgroundColor: "hsla(210, 70%, 50%, 0.6)",
+                              }}
+                            ></div>
+                            <span className="text-xs">Medium</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div
+                              className="w-4 h-4 rounded"
+                              style={{
+                                backgroundColor: "hsla(180, 70%, 50%, 0.9)",
+                              }}
+                            ></div>
+                            <span className="text-xs">High</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -492,12 +605,7 @@ export default function Page() {
                     <Button
                       variant="ghost"
                       className="h-8 w-8 p-0"
-                      onClick={() =>
-                        downloadCSV(
-                          inboundConnections,
-                          "inbound_connections.csv"
-                        )
-                      }
+                      onClick={() => downloadCSV(filteredInboundConnections, "inbound_connections.csv", originalTotalInbound)}
                     >
                       <Download className="h-4 w-4" />
                     </Button>
@@ -507,7 +615,7 @@ export default function Page() {
                       <div className="flex justify-center items-center h-40">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
                       </div>
-                    ) : inboundConnections.length === 0 ? (
+                    ) : filteredInboundConnections.length === 0 ? (
                       <div className="text-center py-8 text-muted-foreground">
                         No inbound connection data available
                       </div>
@@ -522,42 +630,35 @@ export default function Page() {
                             </tr>
                           </thead>
                           <tbody>
-                            {inboundConnections
-                              .slice(0, 10)
-                              .map((country, index) => (
-                                <tr
-                                  key={index}
-                                  className="border-b last:border-b-0 hover:bg-muted/50"
-                                >
-                                  <td className="py-2 flex items-center gap-4">
-                                    {country.country_code && (
-                                      <ReactCountryFlag
-                                        countryCode={country.country_code}
-                                        style={{
-                                          width: "1.5em",
-                                          height: "1.5em",
-                                        }}
-                                        svg
-                                        className="rounded-sm"
-                                      />
-                                    )}
-                                    {country.country_name || "Unknown"}
-                                  </td>
-                                  <td className="py-2 text-right font-mono">
-                                    {Number(
-                                      country.total_connections
-                                    ).toLocaleString()}
-                                  </td>
-                                  <td className="py-2 text-right pl-4 font-mono">
-                                    {(
-                                      (Number(country.total_connections) /
-                                        totalInbound) *
-                                      100
-                                    ).toFixed(1)}
-                                    %
-                                  </td>
-                                </tr>
-                              ))}
+                            {filteredInboundConnections.slice(0, 10).map((country, index) => (
+                              <tr
+                                key={index}
+                                className="border-b last:border-b-0 hover:bg-muted/50"
+                              >
+                                <td className="py-2 flex items-center gap-4">
+                                  {country.country_code && (
+                                    <ReactCountryFlag
+                                      countryCode={country.country_code}
+                                      style={{
+                                        width: "1.5em",
+                                        height: "1.5em",
+                                      }}
+                                      svg
+                                      className="rounded-sm"
+                                    />
+                                  )}
+                                  {country.country_name || "Unknown"}
+                                </td>
+                                <td className="py-2 text-right font-mono">
+                                  {Number(
+                                    country.total_connections
+                                  ).toLocaleString()}
+                                </td>
+                                <td className="py-2 text-right pl-4 font-mono">
+                                  {((Number(country.total_connections) / originalTotalInbound) * 100).toFixed(1)}%
+                                </td>
+                              </tr>
+                            ))}
                           </tbody>
                         </table>
                       </div>
@@ -572,12 +673,7 @@ export default function Page() {
                     <Button
                       variant="ghost"
                       className="h-8 w-8 p-0"
-                      onClick={() =>
-                        downloadCSV(
-                          outboundConnections,
-                          "outbound_connections.csv"
-                        )
-                      }
+                      onClick={() => downloadCSV(filteredOutboundConnections, "outbound_connections.csv", originalTotalOutbound)}
                     >
                       <Download className="h-4 w-4" />
                     </Button>
@@ -587,7 +683,7 @@ export default function Page() {
                       <div className="flex justify-center items-center h-40">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
                       </div>
-                    ) : outboundConnections.length === 0 ? (
+                    ) : filteredOutboundConnections.length === 0 ? (
                       <div className="text-center py-8 text-muted-foreground">
                         No outbound connection data available
                       </div>
@@ -602,42 +698,35 @@ export default function Page() {
                             </tr>
                           </thead>
                           <tbody>
-                            {outboundConnections
-                              .slice(0, 10)
-                              .map((country, index) => (
-                                <tr
-                                  key={index}
-                                  className="border-b last:border-b-0 hover:bg-muted/50"
-                                >
-                                  <td className="py-2 flex items-center gap-4">
-                                    {country.country_code && (
-                                      <ReactCountryFlag
-                                        countryCode={country.country_code}
-                                        style={{
-                                          width: "1.5em",
-                                          height: "1.5em",
-                                        }}
-                                        svg
-                                        className="rounded-sm"
-                                      />
-                                    )}
-                                    {country.country_name || "Unknown"}
-                                  </td>
-                                  <td className="py-2 text-right font-mono">
-                                    {Number(
-                                      country.total_connections
-                                    ).toLocaleString()}
-                                  </td>
-                                  <td className="py-2 text-right pl-4 font-mono">
-                                    {(
-                                      (Number(country.total_connections) /
-                                        totalOutbound) *
-                                      100
-                                    ).toFixed(1)}
-                                    %
-                                  </td>
-                                </tr>
-                              ))}
+                            {filteredOutboundConnections.slice(0, 10).map((country, index) => (
+                              <tr
+                                key={index}
+                                className="border-b last:border-b-0 hover:bg-muted/50"
+                              >
+                                <td className="py-2 flex items-center gap-4">
+                                  {country.country_code && (
+                                    <ReactCountryFlag
+                                      countryCode={country.country_code}
+                                      style={{
+                                        width: "1.5em",
+                                        height: "1.5em",
+                                      }}
+                                      svg
+                                      className="rounded-sm"
+                                    />
+                                  )}
+                                  {country.country_name || "Unknown"}
+                                </td>
+                                <td className="py-2 text-right font-mono">
+                                  {Number(
+                                    country.total_connections
+                                  ).toLocaleString()}
+                                </td>
+                                <td className="py-2 text-right pl-4 font-mono">
+                                  {((Number(country.total_connections) / originalTotalOutbound) * 100).toFixed(1)}%
+                                </td>
+                              </tr>
+                            ))}
                           </tbody>
                         </table>
                       </div>
