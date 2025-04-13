@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -102,7 +103,10 @@ func ReadOffset(path string) (int64, error) {
 	if err != nil {
 		return 0, nil // First run
 	}
-	return strconv.ParseInt(string(data), 10, 64)
+	// Trim whitespace and newlines before parsing
+	trimmedData := string(data)
+	trimmedData = strings.TrimSpace(trimmedData)
+	return strconv.ParseInt(trimmedData, 10, 64)
 }
 
 // WriteOffset writes the offset to the given file path.

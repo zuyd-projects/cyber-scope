@@ -56,6 +56,14 @@ func main() {
 	log.Printf("📊 Scan complete - Found %d entries | New offset: %d", len(entries), newOffset)
 	if len(entries) == 0 {
 		log.Println("ℹ️ No new SSH login attempts found, nothing to process")
+		// Even with no entries, update to the new offset
+		if newOffset != offset {
+			if err := state.WriteOffset(offsetPath, newOffset); err != nil {
+				log.Printf("⚠️ Failed to update offset to %d: %v", newOffset, err)
+			} else {
+				log.Printf("💾 Offset updated to %d", newOffset)
+			}
+		}
 	} else {
 		log.Printf("🔍 Found %d SSH login attempts to process", len(entries))
 	}
@@ -64,17 +72,16 @@ func main() {
 		fmt.Printf("➡️ Found SSH login attempt from IP %s at %s\n", entry.IP, entry.Timestamp)
 	}
 
-	// Process entries with incremental offset updates
+	// Process entries, and write the final offset at the end
 	for i, entry := range entries {
-		currentOffset := offset + int64(i)
 		select {
 		case <-ctx.Done():
 			log.Printf("⚠️ Timeout reached after %v, stopping execution", time.Since(startTime))
 			// Write the last processed offset before exiting
-			if err := state.WriteOffset(offsetPath, currentOffset); err != nil {
-				log.Printf("❌ Failed to write final offset %d: %v", currentOffset, err)
+			if err := state.WriteOffset(offsetPath, newOffset); err != nil {
+				log.Printf("❌ Failed to write final offset %d: %v", newOffset, err)
 			} else {
-				log.Printf("💾 Saved partial progress: offset updated to %d before timeout", currentOffset)
+				log.Printf("💾 Saved partial progress: offset updated to %d before timeout", newOffset)
 			}
 			return
 		default:
@@ -86,13 +93,15 @@ func main() {
 			} else {
 				log.Printf("✅ Successfully sent log for IP %s (took %v)", entry.IP, time.Since(sendStart))
 			}
+		}
+	}
 
-			// Update the offset after processing each entry
-			if err := state.WriteOffset(offsetPath, currentOffset+1); err != nil {
-				log.Printf("⚠️ Failed to update offset to %d: %v", currentOffset+1, err)
-			} else if i%10 == 0 || i == len(entries)-1 { // Log every 10th update or the final one
-				log.Printf("💾 Offset updated to %d", currentOffset+1)
-			}
+	// Update the offset only once after all entries are processed
+	if len(entries) > 0 {
+		if err := state.WriteOffset(offsetPath, newOffset); err != nil {
+			log.Printf("⚠️ Failed to update final offset to %d: %v", newOffset, err)
+		} else {
+			log.Printf("💾 Final offset updated to %d", newOffset)
 		}
 	}
 
