@@ -13,7 +13,7 @@ import (
 
 const (
 	logPath     = "/var/log/auth.log"
-	offsetPath  = "offset.txt"
+	offsetPath  = "/var/lib/ssh-monitor/offset.txt"
 	grpcAddress = "grpc-cyberscope.rickokkersen.nl:443"
 	timeout     = time.Minute
 )

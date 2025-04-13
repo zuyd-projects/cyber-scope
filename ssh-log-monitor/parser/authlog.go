@@ -25,6 +25,23 @@ func ParseAuthLog(path string, lastLine int64) ([]SSHLogEntry, int64, error) {
 	}
 	defer file.Close()
 
+	// Count total lines in the file
+	totalLines := countLines(file)
+
+	// If the stored offset is larger than the total lines in the file,
+	// the file was likely rotated. Reset the offset to 0.
+	if totalLines < lastLine {
+		fmt.Printf("⚠️ File rotation detected: file has %d lines but offset is %d. Resetting offset to 0.\n",
+			totalLines, lastLine)
+		lastLine = 0
+	}
+
+	// Return to the beginning of the file for processing
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		return nil, lastLine, err
+	}
+
 	var entries []SSHLogEntry
 	scanner := bufio.NewScanner(file)
 	var currentLine int64 = 0
@@ -60,4 +77,31 @@ func ParseAuthLog(path string, lastLine int64) ([]SSHLogEntry, int64, error) {
 	}
 
 	return entries, currentLine, scanner.Err()
+}
+
+// countLines counts the total number of lines in a file
+func countLines(file *os.File) int64 {
+	// Save the current position to restore it later
+	currentPos, err := file.Seek(0, os.SEEK_CUR)
+	if err != nil {
+		return 0
+	}
+
+	// Move to the beginning of the file
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		return 0
+	}
+
+	// Count the lines
+	scanner := bufio.NewScanner(file)
+	var lineCount int64 = 0
+	for scanner.Scan() {
+		lineCount++
+	}
+
+	// Restore the file position
+	_, _ = file.Seek(currentPos, 0)
+
+	return lineCount
 }
