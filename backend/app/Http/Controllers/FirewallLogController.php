@@ -17,7 +17,7 @@ class FirewallLogController extends Controller
                 $query->where('device_id', $device_id);
             }, function ($query) use ($user) {
                 if ($user->cannot('viewAny', \App\Models\Device::class)) {
-                    $query->whereIn('device_id', $user->devices()->pluck('id'));
+                    $query->whereIn('device_id', $user->devices()->pluck('devices.id'));
                 }
             })
             ->orderBy('captured_at', $request->query('order', 'asc'))
