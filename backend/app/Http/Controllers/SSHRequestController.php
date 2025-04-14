@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SSHRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class SSHRequestController extends Controller
 {
@@ -20,7 +21,8 @@ class SSHRequestController extends Controller
                 }
             })
             ->orderBy('captured_at', $request->query('order', 'asc'))
-            ->paginate($paginate);
+            ->paginate($paginate)->toArray();
+
         return response()->json($ssh_requests);
     }
 
