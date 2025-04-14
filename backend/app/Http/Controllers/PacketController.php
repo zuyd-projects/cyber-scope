@@ -20,7 +20,7 @@ class PacketController extends Controller
                 }
             })
             ->orderBy('captured_at', $request->query('order', 'asc'))
-            ->paginate($paginate);
+            ->paginate($paginate)->toArray();
         return response()->json($packets);
     }
 
