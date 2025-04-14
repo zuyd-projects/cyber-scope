@@ -47,8 +47,8 @@ const navItems = [
     isActive: true,
   },
   {
-    title: "Deployment",
-    url: "/deployment",
+    title: "Installation",
+    url: "/installation",
     icon: Rocket,
     isActive: true,
   },
