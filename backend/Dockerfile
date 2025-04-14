@@ -101,6 +101,8 @@ COPY docker/fpm-entrypoint.sh /opt/apps/laravel/entrypoint.sh
 RUN chmod +x /opt/apps/laravel/entrypoint.sh
 RUN chown www-data:www-data /opt/apps/laravel/entrypoint.sh
 
+COPY docker/www.conf /usr/local/etc/php-fpm.d/www.conf
+
 # Copy the php.ini file
 COPY docker/php.ini /usr/local/etc/php/php.ini
 
