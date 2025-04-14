@@ -153,7 +153,7 @@ export function SshLogsSection({ logs, devices }: SSHLogsSectionProps) {
             onClick={handleDownload}
             className="text-sm h-[35px] px-3 py-1 border rounded text-blue-600 border-blue-600 hover:bg-blue-50"
           >
-            Download CSV
+            Download
           </button>
         </div>
       </div>
