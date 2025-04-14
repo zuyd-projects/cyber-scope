@@ -2,74 +2,161 @@ import { useEffect, useState } from "react";
 import { Card } from "../ui/card";
 import { api } from "../../lib/api";
 import { Skeleton } from "../ui/skeleton";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "../ui/table";
+
+interface GeoLocation {
+  id: number;
+  country_name: string;
+  country_code: string;
+}
+
+interface SourceIP {
+  id: number;
+  address: string;
+  is_local: number;
+  is_blocked: number;
+  is_tor_exit_node: number;
+  is_vpn: number;
+  is_datacenter: number;
+  geo_location_id: number;
+  geo_location: GeoLocation;
+}
+
+interface Device {
+  id: number;
+  name: string;
+  os: string;
+  status: number;
+}
 
 interface SSHLog {
   id: number;
-  timestamp: string;
-  ip_address: string;
-  username: string;
-  status: string;
-  message: string;
-  // Add other fields as needed
+  device_id: number;
+  source_address_id: number;
+  captured_at: string;
+  process_name: string;
+  created_at: string;
+  updated_at: string;
+  device: Device;
+  source_ip: SourceIP;
+}
+
+interface PaginationLink {
+  url: string | null;
+  label: string;
+  active: boolean;
 }
 
 interface PaginatedResponse {
-  data: SSHLog[];
   current_page: number;
+  data: SSHLog[];
+  first_page_url: string;
+  from: number;
   last_page: number;
-  total: number;
+  last_page_url: string;
+  links: PaginationLink[];
+  next_page_url: string | null;
+  path: string;
   per_page: number;
+  prev_page_url: string | null;
+  to: number;
+  total: number;
 }
 
 export default function SSHLogs() {
   const [logs, setLogs] = useState<SSHLog[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [totalLogs, setTotalLogs] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchLogs = async (page: number) => {
+    try {
+      const response = await api.get<PaginatedResponse>('/ssh_requests', {
+        params: {
+          page,
+          per_page: 10
+        }
+      });
+      
+      return response.data;
+    } catch (err) {
+      console.error(`Error fetching SSH logs page ${page}:`, err);
+      throw err;
+    }
+  };
+
+  // Initial fetch of first page
   useEffect(() => {
-    async function fetchAllSSHLogs() {
+    async function fetchInitialLogs() {
       try {
         setLoading(true);
+        const data = await fetchLogs(1);
         
-        // First fetch the initial page to get pagination info
-        const initialResponse = await api.get<PaginatedResponse>('/ssh-logs', {
-          params: {
-            page: 1,
-          }
-        });
-        
-        // Get the last_page value from the response
-        const totalPages = initialResponse.data.last_page;
-        const fetchPromises = [Promise.resolve(initialResponse)];
-        
-        // Create promises for remaining pages (2 to totalPages)
-        for (let page = 2; page <= totalPages; page++) {
-          fetchPromises.push(
-            api.get<PaginatedResponse>('/ssh-logs', {
-              params: {
-                page,
-              }
-            })
-          );
-        }
-        
-        // Execute all requests in parallel
-        const responses = await Promise.all(fetchPromises);
-        
-        // Combine all logs from different pages
-        const allLogs = responses.flatMap(response => response.data.data || []);
-        
-        setLogs(allLogs);
+        setLogs(data.data);
+        setCurrentPage(data.current_page);
+        setLastPage(data.last_page);
+        setTotalLogs(data.total);
         setLoading(false);
       } catch (err) {
-        console.error("Error fetching SSH logs:", err);
         setError("Failed to fetch SSH logs. Please try again later.");
         setLoading(false);
       }
     }
 
-    fetchAllSSHLogs();
+    fetchInitialLogs();
   }, []);
+
+  // Function to load more logs
+  const loadMoreLogs = async () => {
+    if (currentPage >= lastPage || loadingMore) return;
+    
+    try {
+      setLoadingMore(true);
+      const nextPage = currentPage + 1;
+      const data = await fetchLogs(nextPage);
+      
+      setLogs(prevLogs => [...prevLogs, ...data.data]);
+      setCurrentPage(data.current_page);
+      setLoadingMore(false);
+    } catch (err) {
+      setError("Failed to load more logs. Please try again.");
+      setLoadingMore(false);
+    }
+  };
+
+  // Function to go to a specific page
+  const goToPage = async (page: number) => {
+    if (page < 1 || page > lastPage || page === currentPage || loadingMore) return;
+    
+    try {
+      setLoading(true);
+      const data = await fetchLogs(page);
+      
+      setLogs(data.data);
+      setCurrentPage(data.current_page);
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to load page. Please try again.");
+      setLoading(false);
+    }
+  };
+
+  // Format date to a more readable format
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString();
+  };
 
   if (error) {
     return (
@@ -90,44 +177,147 @@ export default function SSHLogs() {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">SSH Logs</h2>
         <div className="text-sm text-muted-foreground">
-          Showing {logs.length} logs
+          Showing {logs.length} of {totalLogs} logs (Page {currentPage} of {lastPage})
         </div>
       </div>
 
       {loading ? (
         <div className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Card key={i} className="p-4">
-              <Skeleton className="h-6 w-full mb-2" />
-              <Skeleton className="h-4 w-3/4" />
-            </Card>
+          <Skeleton className="h-8 w-full" />
+          {Array.from({ length: 10 }).map((_, i) => (
+            <Skeleton key={i} className="h-12 w-full" />
           ))}
         </div>
       ) : (
-        <div className="space-y-4">
-          {logs.length > 0 ? (
-            logs.map((log) => (
-              <Card key={log.id} className="p-4 hover:shadow-md transition-shadow">
-                <div className="flex justify-between mb-2">
-                  <span className="font-medium">{log.username}@{log.ip_address}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs ${
-                    log.status === 'success' ? 'bg-green-100 text-green-800' : 
-                    log.status === 'failed' ? 'bg-red-100 text-red-800' : 
-                    'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {log.status}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-1">{log.message}</p>
-                <p className="text-xs text-muted-foreground">{new Date(log.timestamp).toLocaleString()}</p>
-              </Card>
-            ))
-          ) : (
-            <div className="p-4 text-center text-muted-foreground">
-              No SSH logs found.
+        <>
+          <Card className="overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Source IP</TableHead>
+                  <TableHead>Country</TableHead>
+                  <TableHead>Device</TableHead>
+                  <TableHead>Process</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {logs.length > 0 ? (
+                  logs.map((log) => (
+                    <TableRow key={log.id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium">{log.id}</TableCell>
+                      <TableCell>{formatDate(log.captured_at)}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span>{log.source_ip.address}</span>
+                          <div className="flex gap-1 mt-1">
+                            {log.source_ip.is_datacenter === 1 && (
+                              <Badge variant="outline" className="text-xs bg-blue-50">Datacenter</Badge>
+                            )}
+                            {log.source_ip.is_blocked === 1 && (
+                              <Badge variant="outline" className="text-xs bg-red-50">Blocked</Badge>
+                            )}
+                            {log.source_ip.is_tor_exit_node === 1 && (
+                              <Badge variant="outline" className="text-xs bg-purple-50">Tor</Badge>
+                            )}
+                            {log.source_ip.is_vpn === 1 && (
+                              <Badge variant="outline" className="text-xs bg-green-50">VPN</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-block w-6 h-4 rounded overflow-hidden border border-gray-300`} 
+                                style={{
+                                  backgroundImage: `url(https://flagcdn.com/w40/${log.source_ip.geo_location.country_code.toLowerCase()}.png)`,
+                                  backgroundSize: 'cover',
+                                  backgroundPosition: 'center'
+                                }} 
+                          />
+                          <span className="text-sm">{log.source_ip.geo_location.country_name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">{log.device.name}</span>
+                          <span className="text-xs text-muted-foreground">{log.device.os}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{log.process_name}</TableCell>
+                      <TableCell>
+                        <Badge variant={log.device.status === 1 ? "success" : "destructive"}>
+                          {log.device.status === 1 ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+                      No SSH logs found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Card>
+          
+          <div className="flex justify-between items-center pt-4">
+            <Button 
+              onClick={() => goToPage(currentPage - 1)} 
+              disabled={currentPage === 1 || loading} 
+              variant="outline"
+            >
+              Previous
+            </Button>
+            
+            <div className="flex gap-1">
+              {currentPage > 3 && (
+                <>
+                  <Button variant="outline" size="sm" onClick={() => goToPage(1)}>1</Button>
+                  {currentPage > 4 && <span className="px-2">...</span>}
+                </>
+              )}
+              
+              {Array.from({ length: 5 }, (_, i) => {
+                const page = Math.max(1, currentPage - 2) + i;
+                if (page <= lastPage) {
+                  return (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => goToPage(page)}
+                    >
+                      {page}
+                    </Button>
+                  );
+                }
+                return null;
+              })}
+              
+              {currentPage < lastPage - 2 && (
+                <>
+                  {currentPage < lastPage - 3 && <span className="px-2">...</span>}
+                  <Button variant="outline" size="sm" onClick={() => goToPage(lastPage)}>
+                    {lastPage}
+                  </Button>
+                </>
+              )}
             </div>
-          )}
-        </div>
+            
+            <Button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === lastPage || loading}
+              variant="outline"
+            >
+              Next
+            </Button>
+          </div>
+        </>
       )}
     </div>
   );
