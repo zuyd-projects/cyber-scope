@@ -14,9 +14,10 @@ class PacketController extends Controller
         $packets = Packet::with(['device:id,name', 'source_ip:id,address,is_local,is_blocked,is_tor_exit_node,is_vpn,is_datacenter,geo_location_id', 'source_ip.geo_location:id,country_name,country_code', 'destination_ip:id,address,geo_location_id', 'destination_ip.geo_location:id,country_name,country_code'])
             ->when($device_id, function ($query) use ($device_id) {
                 $query->where('device_id', $device_id);
-            })
-            ->when($request->user()->cannot('viewAny', \App\Models\Device::class), function ($query) use ($user) {
-                $query->whereIn('devices.id', $user->devices()->pluck('devices.id'));
+            }, function ($query) use ($user) {
+                if ($user->cannot('viewAny', \App\Models\Device::class)) {
+                    $query->whereIn('device_id', $user->devices()->pluck('id'));
+                }
             })
             ->orderBy('captured_at', $request->query('order', 'asc'))
             ->paginate($paginate);
