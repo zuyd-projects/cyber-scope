@@ -11,6 +11,11 @@ export type FirewallLog = {
 type IPAddress = {
   id: number;
   address: string;
+  is_local: number;
+  is_tor_exit_node: number;
+  is_vpn: number;
+  is_datacenter: number;
+  is_blocked: number;
   geo_location: GeoLocation;
 };
 
