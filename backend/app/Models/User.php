@@ -51,4 +51,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Device::class);
     }
+
+    public static function admins()
+    {
+        return User::where('is_admin', true)->get();
+    }
 }

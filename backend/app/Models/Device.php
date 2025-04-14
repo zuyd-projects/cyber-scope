@@ -12,6 +12,23 @@ class Device extends Model
     protected $hidden = ['created_at', 'updated_at'];
     protected $appends = ['os', 'status'];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updated(function ($device) {
+            // Broadcast the event to all users associated with the device
+            \Illuminate\Support\Facades\Log::info('Broadcasting device updated event for device: ' . $device->id);
+            broadcast(new \App\Events\DeviceUpdated($device));
+        });
+
+        static::created(function ($device) {
+            // Broadcast the event to all users associated with the device
+            \Illuminate\Support\Facades\Log::info('Broadcasting device created event for device: ' . $device->id);
+            broadcast(new \App\Events\DeviceUpdated($device));
+        });
+    }
+
     public function getOsAttribute($value)
     {
         if ($this->ssh_requests()->count() > 0) {

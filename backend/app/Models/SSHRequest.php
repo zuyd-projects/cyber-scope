@@ -23,21 +23,6 @@ class SSHRequest extends Model
         'captured_at' => 'datetime'
     ];
 
-    public static function boot()
-    {
-        parent::boot();
-
-        // Automatically set the captured_at timestamp to the current time if not provided
-        static::created(function ($model) {
-            \App\Events\IPLogged::dispatch(
-                $model->source_ip->address,
-                $model->source_ip->geo_location->latitude ?? null,
-                $model->source_ip->geo_location->longitude ?? null,
-                $model->device->name
-            );
-        });
-    }
-
     public function device()
     {
         return $this->belongsTo(Device::class);

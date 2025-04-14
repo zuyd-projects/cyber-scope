@@ -71,6 +71,7 @@ class ProcessRPCData implements ShouldQueue
             'process_path' => $this->data['executablePath'] ?? null,
             'process_file_hash' => $this->data['fileHash'] ?? null
         ]);
+        event(new \App\Events\PacketProcessed($packet));
     }
 
     private function processLinux(): void
@@ -86,6 +87,7 @@ class ProcessRPCData implements ShouldQueue
             'captured_at' => $this->data['timestamp'],
             'process_name' => $this->data['processName'] ?? null
         ]);
+        event(new \App\Events\SSHRequestProcessed($ssh));
     }
 
     private function processWindows(): void
@@ -103,5 +105,6 @@ class ProcessRPCData implements ShouldQueue
             'source_port' => $this->data['srcPort'] ?? null,
             'destination_port' => $this->data['dstPort'] ?? null,
         ]);
+        event(new \App\Events\WinFirewallLogProcessed($winlog));
     }
 }
