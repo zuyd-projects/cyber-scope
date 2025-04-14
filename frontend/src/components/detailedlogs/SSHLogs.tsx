@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card } from "../ui/card";
 import { api } from "../../lib/api";
 import { Skeleton } from "../ui/skeleton";
@@ -80,6 +80,11 @@ export default function SSHLogs() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Cache to store preloaded pages
+  const pageCache = useRef<Map<number, SSHLog[]>>(new Map());
+  // Track which pages are currently being loaded
+  const loadingPages = useRef<Set<number>>(new Set());
 
   const fetchLogs = async (page: number) => {
     try {
@@ -97,6 +102,39 @@ export default function SSHLogs() {
     }
   };
 
+  // Function to preload the next few pages
+  const preloadNextPages = async (currentPageNum: number, numPagesToPreload: number = 3) => {
+    const pagesToLoad = [];
+    
+    // Determine which pages to preload (next 3 pages by default)
+    for (let i = 1; i <= numPagesToPreload; i++) {
+      const pageToLoad = currentPageNum + i;
+      if (pageToLoad <= lastPage && !pageCache.current.has(pageToLoad) && !loadingPages.current.has(pageToLoad)) {
+        pagesToLoad.push(pageToLoad);
+        loadingPages.current.add(pageToLoad);
+      }
+    }
+    
+    // If no pages to preload, return
+    if (pagesToLoad.length === 0) return;
+    
+    // Fetch the pages in parallel
+    try {
+      const responses = await Promise.all(pagesToLoad.map(page => fetchLogs(page)));
+      
+      // Add the fetched pages to the cache
+      responses.forEach((response, index) => {
+        const pageNum = pagesToLoad[index];
+        pageCache.current.set(pageNum, response.data);
+        loadingPages.current.delete(pageNum);
+      });
+    } catch (err) {
+      // Clear the loading state for failed pages
+      pagesToLoad.forEach(page => loadingPages.current.delete(page));
+      console.error("Error preloading pages:", err);
+    }
+  };
+
   // Initial fetch of first page
   useEffect(() => {
     async function fetchInitialLogs() {
@@ -109,6 +147,12 @@ export default function SSHLogs() {
         setLastPage(data.last_page);
         setTotalLogs(data.total);
         setLoading(false);
+        
+        // Cache the first page
+        pageCache.current.set(1, data.data);
+        
+        // Preload the next few pages after initial load
+        preloadNextPages(1);
       } catch (err) {
         setError("Failed to fetch SSH logs. Please try again later.");
         setLoading(false);
@@ -125,11 +169,31 @@ export default function SSHLogs() {
     try {
       setLoadingMore(true);
       const nextPage = currentPage + 1;
+      
+      // Check if we already have this page in the cache
+      if (pageCache.current.has(nextPage)) {
+        const cachedData = pageCache.current.get(nextPage);
+        setLogs(prevLogs => [...prevLogs, ...cachedData!]);
+        setCurrentPage(nextPage);
+        setLoadingMore(false);
+        
+        // Preload next pages after using a cached page
+        preloadNextPages(nextPage);
+        return;
+      }
+      
+      // If not in cache, fetch from API
       const data = await fetchLogs(nextPage);
       
       setLogs(prevLogs => [...prevLogs, ...data.data]);
       setCurrentPage(data.current_page);
       setLoadingMore(false);
+      
+      // Cache this page
+      pageCache.current.set(nextPage, data.data);
+      
+      // Preload the next few pages
+      preloadNextPages(nextPage);
     } catch (err) {
       setError("Failed to load more logs. Please try again.");
       setLoadingMore(false);
@@ -142,11 +206,30 @@ export default function SSHLogs() {
     
     try {
       setLoading(true);
+      
+      // Check if we already have this page in the cache
+      if (pageCache.current.has(page)) {
+        setLogs(pageCache.current.get(page)!);
+        setCurrentPage(page);
+        setLoading(false);
+        
+        // Preload next pages after using a cached page
+        preloadNextPages(page);
+        return;
+      }
+      
+      // If not in cache, fetch from API
       const data = await fetchLogs(page);
       
       setLogs(data.data);
       setCurrentPage(data.current_page);
       setLoading(false);
+      
+      // Cache this page
+      pageCache.current.set(page, data.data);
+      
+      // Preload the next few pages
+      preloadNextPages(page);
     } catch (err) {
       setError("Failed to load page. Please try again.");
       setLoading(false);
