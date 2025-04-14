@@ -13,14 +13,49 @@ const RISK_COUNTRIES = ["RU", "IR", "KP", "CN", "SY", "PK", "HK"]
 export function SshLogsSection({ logs, devices }: SSHLogsSectionProps) {
   const [visibleCount, setVisibleCount] = useState(10)
   const [deviceFilter, setDeviceFilter] = useState<"all" | number>("all")
+  const [filterDuplicateIPs, setFilterDuplicateIPs] = useState(false)
 
-  const filteredLogs = useMemo(() => {
-    return deviceFilter === "all"
+  // Calculate IP occurrences and filtered logs
+  const { filteredLogs, ipOccurrences } = useMemo(() => {
+    let filtered = deviceFilter === "all"
       ? logs
       : logs.filter(log => log.device_id === deviceFilter)
-  }, [logs, deviceFilter])
+    
+    // Track occurrences of each IP
+    const occurrences = new Map<string, number>();
+    filtered.forEach(log => {
+      const ipAddress = log.source_ip.address;
+      occurrences.set(ipAddress, (occurrences.get(ipAddress) || 0) + 1);
+    });
+    
+    if (filterDuplicateIPs) {
+      const uniqueIPs = new Map();
+      filtered = filtered.filter(log => {
+        const ipAddress = log.source_ip.address;
+        if (uniqueIPs.has(ipAddress)) {
+          return false;
+        }
+        uniqueIPs.set(ipAddress, true);
+        return true;
+      });
+    }
+    
+    return { filteredLogs: filtered, ipOccurrences: occurrences };
+  }, [logs, deviceFilter, filterDuplicateIPs]);
 
   const visibleLogs = filteredLogs.slice(0, visibleCount)
+  
+  // Calculate unique risk IPs
+  const riskIPsCount = useMemo(() => {
+    const uniqueRiskIPs = new Set();
+    filteredLogs.forEach(log => {
+      const countryCode = log.source_ip.geo_location?.country_code?.toUpperCase();
+      if (countryCode && RISK_COUNTRIES.includes(countryCode)) {
+        uniqueRiskIPs.add(log.source_ip.address);
+      }
+    });
+    return uniqueRiskIPs.size;
+  }, [filteredLogs]);
 
   const handleShowMore = () => {
     setVisibleCount(prev => prev + 10)
@@ -77,15 +112,32 @@ export function SshLogsSection({ logs, devices }: SSHLogsSectionProps) {
   return (
     <div className="rounded-xl bg-white p-4 shadow border max-h-[600px] overflow-y-auto">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-        <h2 className="text-xl font-bold">Recent SSH Logs</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-bold">Recent SSH Logs</h2>
+          <div className="flex items-center bg-yellow-100 px-3 py-1 border rounded h-[35px]">
+            <span className="w-[75px] text-center text-xs font-semibold text-yellow-800">
+              {riskIPsCount} Risk IP{riskIPsCount !== 1 ? 's' : ''}
+            </span>
+          </div>
+        </div>
 
         <div className="flex gap-3 items-center">
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filterDuplicateIPs}
+              onChange={() => setFilterDuplicateIPs(!filterDuplicateIPs)}
+              className="mr-2"
+            />
+            <span className="text-sm">Filter Duplicate IPs</span>
+          </label>
+          
           <select
             value={deviceFilter}
             onChange={e =>
               setDeviceFilter(e.target.value === "all" ? "all" : parseInt(e.target.value))
             }
-            className="w-[900px] px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded hover:bg-blue-200 transition"
+            className="w-[300px] h-[35px] text-center px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded hover:bg-blue-200 transition"
           >
             <option value="all">SSH Logs</option>
             {devices
@@ -99,7 +151,7 @@ export function SshLogsSection({ logs, devices }: SSHLogsSectionProps) {
 
           <button
             onClick={handleDownload}
-            className="text-sm px-3 py-1 border rounded text-blue-600 border-blue-600 hover:bg-blue-50"
+            className="text-sm h-[35px] px-3 py-1 border rounded text-blue-600 border-blue-600 hover:bg-blue-50"
           >
             Download CSV
           </button>
@@ -151,6 +203,11 @@ export function SshLogsSection({ logs, devices }: SSHLogsSectionProps) {
                   {isRiskCountry && (
                     <span className="ml-2 px-2 py-0.5 text-xs font-semibold text-red-800 bg-red-200 rounded">
                       RISK
+                    </span>
+                  )}
+                  {filterDuplicateIPs && ipOccurrences.get(log.source_ip.address) && ipOccurrences.get(log.source_ip.address)! > 1 && (
+                    <span className="ml-2 px-2 py-0.5 text-xs font-semibold text-blue-800 bg-blue-200 rounded">
+                      {ipOccurrences.get(log.source_ip.address)}×
                     </span>
                   )}
                 </td>
