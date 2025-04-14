@@ -47,11 +47,17 @@ const navItems = [
     isActive: true,
   },
   {
+    title: "Detailed Logs",
+    url: "/detailedview",
+    icon: Send,
+    isActive: true,
+  },
+  {
     title: "Installation",
     url: "/installation",
     icon: Rocket,
     isActive: true,
-  },
+  }
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

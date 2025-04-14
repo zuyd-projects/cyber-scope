@@ -223,7 +223,7 @@ export default function Page() {
             return response;
           });
           
-        const firewallLogsPromise = api.get("/firewall_logs?paginate=100&order=desc")
+        const firewallLogsPromise = api.get("/firewall_logs?paginate=10&order=desc")
           .then(response => {
             if (response.status === 200) {
               setFirewallLogs(response.data.data);
@@ -236,7 +236,7 @@ export default function Page() {
             return response;
           });
           
-        const sshLogsPromise = api.get("/ssh_requests?paginate=100&order=desc")
+        const sshLogsPromise = api.get("/ssh_requests?paginate=10&order=desc")
           .then(response => {
             if (response.status === 200) {
               setSSHLogs(response.data.data);
