@@ -103,7 +103,7 @@ export default function SSHLogs() {
   };
 
   // Function to preload the next few pages
-  const preloadNextPages = async (currentPageNum: number, numPagesToPreload: number = 3) => {
+  const preloadNextPages = async (currentPageNum: number, numPagesToPreload: number = 30) => {
     const pagesToLoad = [];
     
     // Determine which pages to preload (next 3 pages by default)
