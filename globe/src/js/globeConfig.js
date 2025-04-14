@@ -9,9 +9,13 @@ import {
 import Globe from 'globe.gl'
 import * as THREE from 'three'
 import * as dayNightCycle from './dayNightCycle.js'
+import earthDay from '../img/earth-day.jpg'
+import earthDark from '../img/earth-dark.jpg'
+import nightSky from '../img/night-sky.png'
+
 
 export const globe = Globe()
-    .globeImageUrl('./img/earth-dark.jpg')
+    // .globeImageUrl(earthDay)
     .pointsData([])
     .pointAltitude(0.025)
     .pointRadius(0.6)
@@ -25,7 +29,7 @@ export const globe = Globe()
     .arcDashInitialGap(1)
     .arcDashAnimateTime(FLIGHT_TIME)
     .arcsTransitionDuration(0)
-    .arcLabel(d => `${d.address} ➜ ${d.hostname}`)
+    .arcLabel(d => `${d.src} ➜ ${d.dst}`)
     .ringColor(() => t => `rgba(255,100,50,${1 - t})`)
     .ringMaxRadius(RINGS_MAX_R)
     .ringPropagationSpeed(RING_PROPAGATION_SPEED)
@@ -36,19 +40,19 @@ export const globe = Globe()
         new THREE.MeshLambertMaterial({ color: d.color })
     ))
     .customThreeObjectUpdate((obj, d) => {
-        Object.assign(obj.position, globe.getCoords(d.lat, d.lng, d.alt));
+        Object.assign(obj.position, globe.getCoords(d.lat, d.lng, d.alt))
     })
     .width(window.innerWidth)
     .height(window.innerHeight)
 
 Promise.all([
-    new THREE.TextureLoader().loadAsync('./img/earth-day.jpg'),
-    new THREE.TextureLoader().loadAsync('./img/earth-dark.jpg')
+    new THREE.TextureLoader().loadAsync(earthDay),
+    new THREE.TextureLoader().loadAsync(earthDark)
 ]).then(([dayTexture, nightTexture]) => {
-    const material = dayNightCycle.createDayNightMaterial(dayTexture, nightTexture);
+    const material = dayNightCycle.createDayNightMaterial(dayTexture, nightTexture)
 
     globe.globeMaterial(material)
-        .backgroundImageUrl('./img/night-sky.png')
+        .backgroundImageUrl(nightSky)
         .onZoom(({ lng, lat }) => material.uniforms.globeRotation.value.set(lng, lat))
 
     let dt = +new Date()  // Start with the current date/time

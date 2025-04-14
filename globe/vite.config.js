@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+    base: '/globe/',
     build: {
         outDir: 'dist',  // This is where the built files will go
         assetsDir: 'assets',

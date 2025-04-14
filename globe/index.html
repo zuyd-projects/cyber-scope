@@ -4,19 +4,14 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Globe | Cyberscope</title>
-
-		<link rel="stylesheet" href="/css/style.css" />
-
-		<script src="config.js"></script>
 	</head>
 	<body>
 		<div id="globeViz"></div>
 		<div id="time"></div>
 
+		<div id="status-indicator">Connecting...</div>
 
-		<div id="status-indicator">
-            Offline
-        </div>
-		<script type="module" src="/src/main.js"></script>
+		<div id="device-list" class="device-list"></div>
+		<script type="module" src="src/main.js"></script>
 	</body>
 </html>
