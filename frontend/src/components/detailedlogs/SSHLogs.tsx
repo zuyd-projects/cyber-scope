@@ -91,7 +91,6 @@ export default function SSHLogs() {
       const response = await api.get<PaginatedResponse>('/ssh_requests', {
         params: {
           page,
-          per_page: 10
         }
       });
       
@@ -103,10 +102,10 @@ export default function SSHLogs() {
   };
 
   // Function to preload the next few pages
-  const preloadNextPages = async (currentPageNum: number, numPagesToPreload: number = 30) => {
+  const preloadNextPages = async (currentPageNum: number, numPagesToPreload: number = 10) => {
     const pagesToLoad = [];
     
-    // Determine which pages to preload (next 3 pages by default)
+    // Determine which pages to preload (next 10 pages by default)
     for (let i = 1; i <= numPagesToPreload; i++) {
       const pageToLoad = currentPageNum + i;
       if (pageToLoad <= lastPage && !pageCache.current.has(pageToLoad) && !loadingPages.current.has(pageToLoad)) {
