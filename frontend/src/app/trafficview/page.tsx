@@ -342,10 +342,11 @@ export default function Page() {
                                       originalTotalInbound
                                     : 0;
 
-                                // Generate color based on intensity (green to red) - matching the legend
-                                const hue = Math.max(0, 120 - intensity * 120);
-                                const saturation = 70;
-                                const lightness = 50;
+                                // Generate color based on intensity with a focus on making values above 10% more visible
+                                const hue = intensity > 0.1 ? Math.max(0, 120 - intensity * 120) : 120; // Green to red gradient, keep green for values below 10%
+                                const saturation = intensity > 0.1 ? 100 : 80; // Higher saturation for values above 10%
+                                const lightness = intensity > 0.1 ? 40 : 70; // Darker lightness for values above 10%
+                                const alpha = 1; // Full opacity for clear visibility
 
                                 return (
                                   <div
