@@ -22,7 +22,7 @@ class SSHRequestProcessed extends BaseBroadcastingEvent
     public function __construct(private SSHRequest $sshRequest)
     {
         $this->sshRequest->load([
-            'source_ip:id,address,geo_location_id',
+            'source_ip:id,address,is_local,is_blocked,is_tor_exit_node,is_vpn,is_datacenter,geo_location_id',
             'source_ip.geo_location:id,latitude,longitude'
         ]);
     }

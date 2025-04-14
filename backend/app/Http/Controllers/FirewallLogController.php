@@ -12,7 +12,7 @@ class FirewallLogController extends Controller
         $user = $request->user();
         $paginate = $request->query('paginate', 10);
 
-        $firewallLogs = WinFirewallLog::with(['device:id,name', 'source_ip:id,address,geo_location_id', 'source_ip.geo_location:id,country_name,country_code'])
+        $firewallLogs = WinFirewallLog::with(['device:id,name', 'source_ip:id,address,is_local,is_blocked,is_tor_exit_node,is_vpn,is_datacenter,geo_location_id', 'source_ip.geo_location:id,country_name,country_code'])
             ->when($device_id, function ($query) use ($device_id) {
                 $query->where('device_id', $device_id);
             })
