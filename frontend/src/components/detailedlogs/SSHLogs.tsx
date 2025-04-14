@@ -103,7 +103,7 @@ export default function SSHLogs() {
 
   // Function to preload the next few pages
   const preloadNextPages = async (currentPageNum: number, numPagesToPreload: number = 10) => {
-    const pagesToLoad = [];
+    const pagesToLoad: number[] = [];
     
     // Determine which pages to preload (next 10 pages by default)
     for (let i = 1; i <= numPagesToPreload; i++) {
@@ -282,7 +282,6 @@ export default function SSHLogs() {
                   <TableHead>Country</TableHead>
                   <TableHead>Device</TableHead>
                   <TableHead>Process</TableHead>
-                  <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -329,11 +328,6 @@ export default function SSHLogs() {
                         </div>
                       </TableCell>
                       <TableCell>{log.process_name}</TableCell>
-                      <TableCell>
-                        <Badge variant={log.device.status === 1 ? "success" : "destructive"}>
-                          {log.device.status === 1 ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
