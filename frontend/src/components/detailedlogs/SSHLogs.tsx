@@ -97,6 +97,7 @@ export default function SSHLogs() {
       const response = await api.get<PaginatedResponse>("/ssh_requests", {
         params: {
           page,
+          order: "desc",  // Added order parameter for descending order
         },
       });
 

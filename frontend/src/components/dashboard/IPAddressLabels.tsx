@@ -46,7 +46,7 @@ const IPAddressLabels: React.FC<IPAddressLabelsProps> = ({
       )}
       {sourceIP.is_local == 1 && (
         <span className="relative group">
-        <span className="px-2 py-0.5 text-xs font-semibold text-gray-800 bg-gray-200 rounded">LOCAL</span>
+        <span className="px-2 py-0.5 text-xs font-semibold text-yellow-800 bg-yellow-200 rounded">LOCAL</span>
         <div className="absolute z-20 bottom-full mb-1 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-md whitespace-nowrap">
           Lokaal netwerkadres
         </div>

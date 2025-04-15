@@ -100,6 +100,7 @@ export default function FirewallLogs() {
       const response = await api.get<PaginatedResponse>("/firewall_logs", {
         params: {
           page,
+          order: "desc",  // Added order parameter for descending order
         },
       });
 
