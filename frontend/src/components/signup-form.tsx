@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { cn } from "@cyberscope/lib/utils";
 import { api, getCsrfToken } from "@cyberscope/lib/api";
 import { Button } from "@cyberscope/components/ui/button";
@@ -102,19 +103,16 @@ export function SignupForm({
               </div>
               <div className="text-center text-sm">
                 Already have an account?{" "}
-                <a
-                  onClick={() => router.push("/login")}
-                  className="underline underline-offset-4 cursor-pointer"
-                >
+                <Link href="/login" prefetch={true} className="underline underline-offset-4 cursor-pointer">
                   Login
-                </a>
+                </Link>
               </div>
             </div>
           </form>
         </CardContent>
       </Card>
       <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary  ">
-        By signing up, you agree to our <a href="#">Privacy Policy</a>.
+        By signing up, you agree to our <Link href="#" prefetch={true}>Privacy Policy</Link>.
       </div>
     </div>
   );

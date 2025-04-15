@@ -17,6 +17,7 @@ import {
   MapIcon
 } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 
 import { NavMain } from "@cyberscope/components/nav-main"
 import { NavProjects } from "@cyberscope/components/nav-projects"
@@ -83,7 +84,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="https://github.com/zuyd-projects/cyber-scope" target="_blank">
+              <Link href="https://github.com/zuyd-projects/cyber-scope" prefetch={true} target="_blank">
               <div className="relative flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground overflow-hidden">
                   <Image
                     src="/logo.png"
@@ -98,7 +99,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     {isAdmin(profile) ? "Admin Access" : "User Access"}
                   </span>
                 </div>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
