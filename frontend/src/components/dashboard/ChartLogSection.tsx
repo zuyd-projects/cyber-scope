@@ -51,7 +51,7 @@ export function InteractiveBarChart({ aggregatedData = {} }: Props) {
   const [activeChart, setActiveChart] = React.useState<"firewalllogs" | "sshlogs" | "packets">(
     availableChartTypes[0] || "sshlogs"
   );
-  const [timeRange, setTimeRange] = React.useState<"hour" | "day" | "week">("hour")
+  const [timeRange, setTimeRange] = React.useState<"hour" | "day" | "week">("day")
 
   // Ensure activeChart is valid whenever availableChartTypes changes
   React.useEffect(() => {
@@ -71,20 +71,31 @@ export function InteractiveBarChart({ aggregatedData = {} }: Props) {
     ].filter((value, index, self) => self.indexOf(value) === index)
       .sort();
     
+    let processedData;
+    
     if (timeRange === "hour") {
       // For hourly data, keep original timestamp format
-      return allTimestamps.map(timestamp => {
-        const date = new Date(timestamp);
-        const label = `${date.toISOString().split("T")[0]} ${date.getHours()}:00`;
-        
-        return {
-          timestamp,
-          label,
-          firewalllogs: firewalllogs[timestamp] || 0,
-          sshlogs: sshlogs[timestamp] || 0,
-          packets: packets[timestamp] || 0
-        };
-      });
+      processedData = allTimestamps
+        .map(timestamp => {
+          const date = new Date(timestamp);
+          const label = `${date.toISOString().split("T")[0]} ${date.getHours()}:00`;
+          
+          const fwLogs = firewalllogs[timestamp] || 0;
+          const sshLogs = sshlogs[timestamp] || 0;
+          const packetLogs = packets[timestamp] || 0;
+          
+          return {
+            timestamp,
+            label,
+            firewalllogs: fwLogs,
+            sshlogs: sshLogs,
+            packets: packetLogs,
+            // Track if this timestamp has any data for all chart types
+            hasData: fwLogs > 0 || sshLogs > 0 || packetLogs > 0
+          };
+        })
+        // Filter out timestamps that have no data
+        .filter(item => item.hasData);
     } else if (timeRange === "day") {
       // Group by day
       const dailyData: Record<string, {
@@ -106,12 +117,16 @@ export function InteractiveBarChart({ aggregatedData = {} }: Props) {
         dailyData[dayKey].packets += packets[timestamp] || 0;
       });
       
-      return Object.entries(dailyData)
+      processedData = Object.entries(dailyData)
         .map(([day, counts]) => ({
           timestamp: day,
           label: day,
-          ...counts
+          ...counts,
+          // Track if this day has any data
+          hasData: counts.firewalllogs > 0 || counts.sshlogs > 0 || counts.packets > 0
         }))
+        // Filter out days that have no data
+        .filter(item => item.hasData)
         .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
     } else {
       // Group by week
@@ -153,7 +168,7 @@ export function InteractiveBarChart({ aggregatedData = {} }: Props) {
         weeklyData[weekKey].packets += packets[timestamp] || 0;
       });
       
-      return Object.entries(weeklyData)
+      processedData = Object.entries(weeklyData)
         .map(([weekKey, data]) => {
           // Calculate the end of the week (7 days from start)
           const weekStart = new Date(data.weekStart);
@@ -165,12 +180,19 @@ export function InteractiveBarChart({ aggregatedData = {} }: Props) {
             label: `${data.weekStart} - ${weekEnd.toISOString().split('T')[0]}`,
             firewalllogs: data.firewalllogs,
             sshlogs: data.sshlogs,
-            packets: data.packets
+            packets: data.packets,
+            // Track if this week has any data
+            hasData: data.firewalllogs > 0 || data.sshlogs > 0 || data.packets > 0
           };
         })
+        // Filter out weeks that have no data
+        .filter(item => item.hasData)
         .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
     }
-  }, [aggregatedData, timeRange]);
+    
+    // Filter out entries where the active chart type has zero value
+    return processedData.filter(item => item[activeChart] > 0);
+  }, [aggregatedData, timeRange, activeChart]);
 
   const total = React.useMemo(() => ({
     firewalllogs: Object.values(aggregatedData.firewalllogs || {}).reduce((sum, value) => sum + value, 0),
@@ -180,11 +202,11 @@ export function InteractiveBarChart({ aggregatedData = {} }: Props) {
 
   const chartConfig = {
     firewalllogs: {
-      label: "Firewall Logs",
+      label: "Firewall",
       color: "#f87171",
     },
     sshlogs: {
-      label: "SSH Logs",
+      label: "SSH",
       color: "#60a5fa",
     },
     packets: {
@@ -216,7 +238,7 @@ export function InteractiveBarChart({ aggregatedData = {} }: Props) {
             <button
               key={key}
               data-active={activeChart === key}
-              className="relative z-30 flex flex-col justify-center gap-1 border px-4 py-2 text-left text-sm data-[active=true]:bg-muted/50 rounded"
+              className="relative z-30 flex flex-col justify-center text-center gap-1 border px-4 py-2 text-sm data-[active=true]:bg-muted/50 rounded"
               onClick={() => setActiveChart(key)}
             >
               <span className="text-xs text-muted-foreground">{chartConfig[key].label}</span>
