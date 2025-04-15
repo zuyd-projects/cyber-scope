@@ -27,6 +27,7 @@ type GeoLocation = {
 export interface Device {
   id: number;
   name: string;
+  key: string;
   os: string;
   status: number;
 }
