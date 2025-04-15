@@ -9,9 +9,10 @@ import {
 } from "@cyberscope/components/ui/sidebar";
 import FirewallLogs from "../../components/detailedlogs/FirewallLogs";
 import SSHLogs from "../../components/detailedlogs/SSHLogs";
+import PacketLogs from "../../components/detailedlogs/PacketLogs";
 
 export default function Page() {
-  const [activeTab, setActiveTab] = useState<"firewalllog" | "sshlogs">("firewalllog");
+  const [activeTab, setActiveTab] = useState<"packetlog" | "firewalllog" | "sshlogs">("packetlog");
 
   return (
     <div className="min-h-screen [--header-height:calc(theme(spacing.14))] bg-background text-foreground">
@@ -21,11 +22,12 @@ export default function Page() {
           <AppSidebar />
           <SidebarInset>
             <main className="w-full max-w-6xl mx-auto px-6 py-8">
-              <h1 className="text-3xl font-bold mb-6">Detailed Logs</h1>
+              <h1 className="text-3xl font-bold mb-6">🔎 Detailed Logs</h1>
 
               <nav className="border-b mb-8">
                 <div className="flex space-x-4">
                   {[
+                    { key: "packetlog", label: "Packet Logs" },
                     { key: "firewalllog", label: "Firewall Logs" },
                     { key: "sshlogs", label: "SSH Logs" },
                   ].map(({ key, label }) => (
@@ -37,7 +39,7 @@ export default function Page() {
                           : "text-muted-foreground border-transparent hover:text-foreground"
                       }`}
                       onClick={() =>
-                        setActiveTab(key as "firewalllog" | "sshlogs")
+                        setActiveTab(key as "packetlog" | "firewalllog" | "sshlogs")
                       }
                     >
                       {label}
@@ -46,6 +48,7 @@ export default function Page() {
                 </div>
               </nav>
 
+              {activeTab === "packetlog" && <PacketLogs />}
               {activeTab === "firewalllog" && <FirewallLogs />}
               {activeTab === "sshlogs" && <SSHLogs />}
             </main>
