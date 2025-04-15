@@ -49,11 +49,11 @@ interface PacketLog {
   destination_port: number;
   size: number;
   captured_at: string;
-  type: string;
+  type?: string;
   process_id?: number;
   process_name: string;
-  executable_path: string;
-  file_hash: string;
+  process_path: string; // Updated from executable_path
+  process_file_hash: string; // Updated from file_hash
   created_at: string;
   updated_at: string;
   device: Device;
@@ -362,18 +362,18 @@ export default function PacketLogs() {
                               {log.process_name}
                             </span>
                             <div className="absolute z-50 invisible group-hover:visible bg-popover text-popover-foreground p-3 rounded shadow-lg w-72 mt-2 border border-border right-0 sm:left-0 sm:right-auto">
-                              {log.executable_path ? (
+                              {log.process_path ? (
                                 <div className="break-words mb-2">
                                   <span className="font-semibold">Path:</span>{" "}
-                                  {log.executable_path}
+                                  {log.process_path}
                                 </div>
                               ) : (
                                 <div className="text-muted-foreground italic mb-2">No path information available</div>
                               )}
-                              {log.file_hash ? (
+                              {log.process_file_hash ? (
                                 <div className="break-all">
                                   <span className="font-semibold">Hash:</span>{" "}
-                                  {log.file_hash}
+                                  {log.process_file_hash}
                                 </div>
                               ) : (
                                 <div className="text-muted-foreground italic">No file hash available</div>

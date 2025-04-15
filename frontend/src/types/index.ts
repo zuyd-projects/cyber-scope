@@ -24,13 +24,12 @@ type GeoLocation = {
   country_code: string;
 };
 
-export type Device = {
+export interface Device {
   id: number;
   name: string;
-  key: string;
   os: string;
-  status: string;
-};
+  status: number;
+}
 
 export type SSHLog = {
   id: number;
