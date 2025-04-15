@@ -389,7 +389,7 @@ export default function SSHLogs() {
               <TableBody>
                 {logs.length > 0 ? (
                   logs.map((log) => (
-                    <TableRow key={log.id} className="hover:bg-amber-50/50 dark:hover:bg-amber-950/20">
+                    <TableRow key={log.id} className="hover:bg-blue-50/50 dark:hover:bg-blue-950/20">
                       <TableCell className="font-medium text-slate-500">{log.id}</TableCell>
                       <TableCell className="text-slate-600 dark:text-slate-400">{formatDate(log.captured_at)}</TableCell>
                       <TableCell>

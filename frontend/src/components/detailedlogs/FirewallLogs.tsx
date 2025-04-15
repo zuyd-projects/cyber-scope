@@ -442,7 +442,7 @@ export default function FirewallLogs() {
               <TableBody>
                 {logs.length > 0 ? (
                   logs.map((log) => (
-                    <TableRow key={log.id} className="hover:bg-muted/50">
+                    <TableRow key={log.id} className="hover:bg-blue-50/50 dark:hover:bg-blue-950/20">
                       <TableCell className="font-medium">{log.id}</TableCell>
                       <TableCell>{formatDate(log.captured_at)}</TableCell>
                       <TableCell>
