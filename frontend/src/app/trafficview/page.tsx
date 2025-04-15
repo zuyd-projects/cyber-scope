@@ -198,6 +198,8 @@ export default function Page() {
                       <Filter className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
                     </div>
 
+                    
+                    {/* Date filter is not used in the current implementation
                     <select
                       value={dateFilter}
                       onChange={(e) => setDateFilter(e.target.value as any)}
@@ -207,7 +209,7 @@ export default function Page() {
                       <option value="today">Today</option>
                       <option value="week">This Week</option>
                       <option value="month">This Month</option>
-                    </select>
+                    </select> */}
 
                     <select
                       value={deviceFilter}
