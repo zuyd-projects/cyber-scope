@@ -12,6 +12,13 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import {
+  ChevronDown,
+  ChevronUp,
+  Shield,
+  AlertTriangle,
+  Globe,
+} from "lucide-react";
 
 import IPAddressLabels from "../dashboard/IPAddressLabels";
 
@@ -87,6 +94,7 @@ export default function FirewallLogs() {
   const [error, setError] = useState<string | null>(null);
   const [filterDuplicateIPs, setFilterDuplicateIPs] = useState<boolean>(true);
   const [riskCountryCount, setRiskCountryCount] = useState<number>(0);
+  const [showContext, setShowContext] = useState<boolean>(false);
 
   // Cache to store preloaded pages
   const pageCache = useRef<Map<number, FirewallLog[]>>(new Map());
@@ -156,15 +164,17 @@ export default function FirewallLogs() {
   // Track IP occurrences whenever logs change
   useEffect(() => {
     const ipCounts = new Map<string, number>();
-    logs.forEach(log => {
+    logs.forEach((log) => {
       const ip = log.source_ip.address;
       ipCounts.set(ip, (ipCounts.get(ip) || 0) + 1);
     });
     ipOccurrences.current = ipCounts;
-    
+
     // Calculate risk country count for the current page
-    const riskCount = logs.filter(log => 
-      log.source_ip.geo_location && isRiskCountry(log.source_ip.geo_location.country_code)
+    const riskCount = logs.filter(
+      (log) =>
+        log.source_ip.geo_location &&
+        isRiskCountry(log.source_ip.geo_location.country_code)
     ).length;
     setRiskCountryCount(riskCount);
   }, [logs]);
@@ -302,9 +312,14 @@ export default function FirewallLogs() {
         <h2 className="text-xl font-bold">Firewall Logs</h2>
         <div className="flex items-center gap-3">
           {riskCountryCount > 0 && (
-            <Badge variant="destructive" className="flex items-center gap-1 ml-10">
+            <Badge
+              variant="destructive"
+              className="flex items-center gap-1 ml-10"
+            >
               <span>{riskCountryCount}</span>
-              <span>high-risk {riskCountryCount === 1 ? 'country' : 'countries'}</span>
+              <span>
+                high-risk {riskCountryCount === 1 ? "country" : "countries"}
+              </span>
             </Badge>
           )}
           <div className="text-sm text-muted-foreground">
@@ -313,6 +328,94 @@ export default function FirewallLogs() {
           </div>
         </div>
       </div>
+
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/30 p-4 border-blue-200 dark:border-blue-900 relative shadow-sm">
+        <div
+          className="flex justify-between items-center cursor-pointer"
+          onClick={() => setShowContext(!showContext)}
+        >
+          <div className="flex items-center gap-2">
+            <Shield size={18} className="text-blue-600 dark:text-blue-400" />
+            <h3 className="text-md font-medium text-blue-700 dark:text-blue-300">
+              About Firewall Logs
+            </h3>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
+          >
+            {showContext ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </Button>
+        </div>
+
+        {showContext && (
+          <div className="mt-3 text-sm space-y-3 text-blue-800 dark:text-blue-200">
+            <p>
+              Firewall logs record network traffic that has been allowed or
+              blocked by your firewall rules. These logs are essential for
+              security monitoring and network traffic analysis.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="bg-white/70 dark:bg-slate-900/60 p-3 rounded-md border border-blue-200 dark:border-blue-900">
+                <h4 className="font-medium flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                  <Shield size={14} />
+                  Firewall Connection Details
+                </h4>
+                <ul className="list-disc list-inside pl-2 space-y-1 mt-1 text-slate-700 dark:text-slate-300">
+                  <li>
+                    <span className="font-medium">Source IP:</span> Origin of
+                    the network traffic
+                  </li>
+                  <li>
+                    <span className="font-medium">Country:</span> Geolocation of
+                    the traffic source
+                  </li>
+                  <li>
+                    <span className="font-medium">Device:</span> The device
+                    reporting the firewall event
+                  </li>
+                  <li>
+                    <span className="font-medium">Ports:</span> Source and
+                    destination ports used for the connection
+                  </li>
+                </ul>
+              </div>
+              <div className="bg-white/70 dark:bg-slate-900/60 p-3 rounded-md border border-blue-200 dark:border-blue-900">
+                <h4 className="font-medium flex items-center gap-2 text-red-600 dark:text-red-400">
+                  <AlertTriangle size={14} />
+                  Security Indicators
+                </h4>
+                <ul className="list-disc list-inside pl-2 space-y-1 mt-1 text-slate-700 dark:text-slate-300">
+                  <li>
+                    <span className="text-red-600 dark:text-red-400 font-medium">
+                      Blocked traffic:
+                    </span>{" "}
+                    Indicates potential intrusion attempts
+                  </li>
+                  <li>
+                    <span className="text-red-600 dark:text-red-400 font-medium">
+                      High-risk countries:
+                    </span>{" "}
+                    Traffic from known threat regions
+                  </li>
+                  <li>
+                    <span className="text-blue-600 dark:text-blue-400 font-medium">
+                      Unusual ports:
+                    </span>{" "}
+                    May indicate unauthorized services or backdoors
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <p className="text-xs italic mt-2 text-slate-600 dark:text-slate-400">
+              Regular analysis of firewall logs helps identify potential
+              security threats, unauthorized access attempts, and validate the
+              effectiveness of your network security policies.
+            </p>
+          </div>
+        )}
+      </Card>
 
       {loading ? (
         <div className="space-y-4">
@@ -347,7 +450,13 @@ export default function FirewallLogs() {
                           {log.source_ip.address}
                           <IPAddressLabels
                             sourceIP={log.source_ip}
-                            isRiskCountry={log.source_ip.geo_location ? isRiskCountry(log.source_ip.geo_location.country_code) : false}
+                            isRiskCountry={
+                              log.source_ip.geo_location
+                                ? isRiskCountry(
+                                    log.source_ip.geo_location.country_code
+                                  )
+                                : false
+                            }
                             occurrences={ipOccurrences.current.get(
                               log.source_ip.address
                             )}
@@ -370,15 +479,26 @@ export default function FirewallLogs() {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-sm text-muted-foreground">Unknown</span>
+                          <span className="text-sm text-muted-foreground">
+                            Unknown
+                          </span>
                         )}
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium">
-                            {log.device.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1.5">
+                            <div
+                              className={`w-2 h-2 rounded-full ${
+                                log.device.status === 1
+                                  ? "bg-green-500"
+                                  : "bg-amber-500"
+                              }`}
+                            ></div>
+                            <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                              {log.device.name}
+                            </span>
+                          </div>
+                          <span className="text-xs text-muted-foreground ml-3.5">
                             {log.device.os}
                           </span>
                         </div>
@@ -386,7 +506,10 @@ export default function FirewallLogs() {
                       <TableCell>
                         <Badge
                           style={{
-                            backgroundColor: log.action.toLowerCase() === "blocked" ? "red" : "green",
+                            backgroundColor:
+                              log.action.toLowerCase() === "blocked"
+                                ? "red"
+                                : "green",
                             color: "white",
                           }}
                         >
@@ -395,9 +518,21 @@ export default function FirewallLogs() {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="text-sm font-semibold">{log.source_port}</span>
-                          <span>-&gt;</span>
-                          <span className="text-sm font-semibold">{log.destination_port}</span>
+                          <span
+                            className={`text-sm font-semibold px-1.5 py-0.5 rounded ${getPortClass(
+                              log.source_port
+                            )}`}
+                          >
+                            {log.source_port}
+                          </span>
+                          <span className="text-slate-400 mx-auto">→</span>
+                          <span
+                            className={`text-sm font-semibold px-1.5 py-0.5 rounded ${getPortClass(
+                              log.destination_port
+                            )}`}
+                          >
+                            {log.destination_port}
+                          </span>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -484,4 +619,17 @@ export default function FirewallLogs() {
       )}
     </div>
   );
+}
+
+// Helper function to determine port class based on port number
+function getPortClass(port: number): string {
+  // Common ports get specific colors
+  if ([80, 443].includes(port)) return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"; // HTTP/HTTPS
+  if ([21, 22, 23].includes(port)) return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"; // FTP/SSH/Telnet
+  if ([25, 110, 143, 587, 993].includes(port)) return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"; // Email
+  if ([53].includes(port)) return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"; // DNS
+  if (port < 1024) return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300"; // Other well-known ports
+  
+  // High ports (ephemeral)
+  return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300";
 }

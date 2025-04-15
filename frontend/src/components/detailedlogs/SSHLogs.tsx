@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { ChevronDown, ChevronUp, Shield, AlertTriangle, Globe, Terminal } from "lucide-react";
 
 import IPAddressLabels from "../dashboard/IPAddressLabels";
 
@@ -84,6 +85,7 @@ export default function SSHLogs() {
   const [error, setError] = useState<string | null>(null);
   const [filterDuplicateIPs, setFilterDuplicateIPs] = useState<boolean>(true);
   const [riskCountryCount, setRiskCountryCount] = useState<number>(0);
+  const [showContext, setShowContext] = useState<boolean>(false);
 
   // Cache to store preloaded pages
   const pageCache = useRef<Map<number, SSHLog[]>>(new Map());
@@ -300,6 +302,7 @@ export default function SSHLogs() {
         <div className="flex items-center gap-3">
           {riskCountryCount > 0 && (
             <Badge variant="destructive" className="flex items-center gap-1 ml-10">
+              <AlertTriangle size={14} className="mr-1" />
               <span>{riskCountryCount}</span>
               <span>high-risk {riskCountryCount === 1 ? 'country' : 'countries'}</span>
             </Badge>
@@ -311,6 +314,57 @@ export default function SSHLogs() {
         </div>
       </div>
 
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/30 p-4 border-blue-200 dark:border-blue-900 relative shadow-sm">
+        <div 
+          className="flex justify-between items-center cursor-pointer"
+          onClick={() => setShowContext(!showContext)}
+        >
+          <div className="flex items-center gap-2">
+            <Terminal size={18} className="text-blue-600 dark:text-blue-400" />
+            <h3 className="text-md font-medium text-blue-700 dark:text-blue-300">About SSH Logs</h3>
+          </div>
+          <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200">
+            {showContext ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </Button>
+        </div>
+        
+        {showContext && (
+          <div className="mt-3 text-sm space-y-3 text-blue-800 dark:text-blue-200">
+            <p>
+              SSH logs record secure shell connection attempts to your monitored devices. These logs are particularly important for security monitoring as SSH is a common target for attackers.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="bg-white/70 dark:bg-slate-900/60 p-3 rounded-md border border-blue-200 dark:border-blue-900">
+                <h4 className="font-medium flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                  <Terminal size={14} />
+                  SSH Connection Details
+                </h4>
+                <ul className="list-disc list-inside pl-2 space-y-1 mt-1 text-slate-700 dark:text-slate-300">
+                  <li><span className="font-medium">Source IP:</span> Origin of the SSH connection attempt</li>
+                  <li><span className="font-medium">Country:</span> Geolocation of the connection source</li>
+                  <li><span className="font-medium">Device:</span> The target of the SSH connection</li>
+                  <li><span className="font-medium">Process:</span> The process handling the SSH connection</li>
+                </ul>
+              </div>
+              <div className="bg-white/70 dark:bg-slate-900/60 p-3 rounded-md border border-blue-200 dark:border-blue-900">
+                <h4 className="font-medium flex items-center gap-2 text-red-600 dark:text-red-400">
+                  <AlertTriangle size={14} />
+                  Security Concerns
+                </h4>
+                <ul className="list-disc list-inside pl-2 space-y-1 mt-1 text-slate-700 dark:text-slate-300">
+                  <li><span className="text-red-600 dark:text-red-400 font-medium">Multiple attempts:</span> May indicate brute force attacks</li>
+                  <li><span className="text-red-600 dark:text-red-400 font-medium">High-risk countries:</span> Connections from known threat regions</li>
+                  <li><span className="text-blue-600 dark:text-blue-400 font-medium">VPN/TOR sources:</span> May indicate attempts to hide identity</li>
+                </ul>
+              </div>
+            </div>
+            <p className="text-xs italic mt-2 text-slate-600 dark:text-slate-400">
+              Unusual or repeated SSH connection attempts, especially from high-risk locations or anonymous networks, should be investigated promptly as they are often precursors to intrusion attempts.
+            </p>
+          </div>
+        )}
+      </Card>
+
       {loading ? (
         <div className="space-y-4">
           <Skeleton className="h-8 w-full" />
@@ -320,9 +374,9 @@ export default function SSHLogs() {
         </div>
       ) : (
         <>
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden border-slate-200 dark:border-slate-800">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-slate-50 dark:bg-slate-900/40">
                 <TableRow>
                   <TableHead>ID</TableHead>
                   <TableHead>Time</TableHead>
@@ -335,12 +389,15 @@ export default function SSHLogs() {
               <TableBody>
                 {logs.length > 0 ? (
                   logs.map((log) => (
-                    <TableRow key={log.id} className="hover:bg-muted/50">
-                      <TableCell className="font-medium">{log.id}</TableCell>
-                      <TableCell>{formatDate(log.captured_at)}</TableCell>
+                    <TableRow key={log.id} className="hover:bg-amber-50/50 dark:hover:bg-amber-950/20">
+                      <TableCell className="font-medium text-slate-500">{log.id}</TableCell>
+                      <TableCell className="text-slate-600 dark:text-slate-400">{formatDate(log.captured_at)}</TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          {log.source_ip.address}
+                          <div className="flex items-center">
+                            <Globe className="h-3.5 w-3.5 mr-1 text-slate-500" />
+                            <span className="font-medium text-slate-800 dark:text-slate-200">{log.source_ip.address}</span>
+                          </div>
                           <IPAddressLabels
                             sourceIP={log.source_ip}
                             isRiskCountry={isRiskCountry(log.source_ip.geo_location.country_code)}
@@ -353,29 +410,36 @@ export default function SSHLogs() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <span
-                            className={`inline-block w-6 h-4 rounded overflow-hidden border border-gray-300`}
+                            className={`inline-block w-6 h-4 rounded overflow-hidden border ${isRiskCountry(log.source_ip.geo_location.country_code) ? 'border-red-300 shadow-sm shadow-red-200' : 'border-gray-300'}`}
                             style={{
                               backgroundImage: `url(https://flagcdn.com/w40/${log.source_ip.geo_location.country_code.toLowerCase()}.png)`,
                               backgroundSize: "cover",
                               backgroundPosition: "center",
                             }}
                           />
-                          <span className="text-sm">
+                          <span className={`text-sm ${isRiskCountry(log.source_ip.geo_location.country_code) ? 'text-red-600 font-medium' : ''}`}>
                             {log.source_ip.geo_location.country_name}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium">
-                            {log.device.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1.5">
+                            <div className={`w-2 h-2 rounded-full ${log.device.status === 1 ? 'bg-green-500' : 'bg-amber-500'}`}></div>
+                            <span className="text-sm font-medium">
+                              {log.device.name}
+                            </span>
+                          </div>
+                          <span className="text-xs text-muted-foreground ml-3.5">
                             {log.device.os}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>{log.process_name}</TableCell>
+                      <TableCell>
+                        <span className="px-2 py-1 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 text-xs font-medium">
+                          {log.process_name}
+                        </span>
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (

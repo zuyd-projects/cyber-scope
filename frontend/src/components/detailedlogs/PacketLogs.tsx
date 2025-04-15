@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { ChevronDown, ChevronUp, HelpCircle, Shield, Globe, Activity, AlertTriangle } from "lucide-react";
 
 import IPAddressLabels from "../dashboard/IPAddressLabels";
 
@@ -93,6 +94,7 @@ export default function PacketLogs() {
   const [error, setError] = useState<string | null>(null);
   const [filterDuplicateIPs, setFilterDuplicateIPs] = useState<boolean>(true);
   const [riskCountryCount, setRiskCountryCount] = useState<number>(0);
+  const [showContext, setShowContext] = useState<boolean>(false);
 
   // Cache to store preloaded pages
   const pageCache = useRef<Map<number, PacketLog[]>>(new Map());
@@ -314,6 +316,7 @@ export default function PacketLogs() {
               variant="destructive"
               className="flex items-center gap-1 ml-10"
             >
+              <AlertTriangle size={14} className="mr-1" />
               <span>{riskCountryCount}</span>
               <span>
                 high-risk {riskCountryCount === 1 ? "country" : "countries"}
@@ -326,6 +329,55 @@ export default function PacketLogs() {
           </div>
         </div>
       </div>
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/30 p-4 border-blue-200 dark:border-blue-900 relative shadow-sm">
+        <div 
+          className="flex justify-between items-center cursor-pointer"
+          onClick={() => setShowContext(!showContext)}
+        >
+          <div className="flex items-center gap-2">
+            <Shield size={18} className="text-blue-600 dark:text-blue-400" />
+            <h3 className="text-md font-medium text-blue-700 dark:text-blue-300">About Packet Logs</h3>
+          </div>
+          <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200">
+            {showContext ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </Button>
+        </div>
+        
+        {showContext && (
+          <div className="mt-3 text-sm space-y-3 text-blue-800 dark:text-blue-200">
+            <p>
+              Packet logs record network traffic captured from monitored devices in your network. Each row represents a single packet that was sent or received.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="bg-white/70 dark:bg-slate-900/60 p-3 rounded-md border border-blue-200 dark:border-blue-900">
+                <h4 className="font-medium flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                  <Activity size={14} />
+                  Traffic Indicators
+                </h4>
+                <ul className="list-disc list-inside pl-2 space-y-1 mt-1 text-slate-700 dark:text-slate-300">
+                  <li><span className="font-medium">Process:</span> The application generating network traffic</li>
+                  <li><span className="font-medium">Ports:</span> Network communication channels</li>
+                  <li><span className="font-medium">Size:</span> Data volume of each packet</li>
+                </ul>
+              </div>
+              <div className="bg-white/70 dark:bg-slate-900/60 p-3 rounded-md border border-blue-200 dark:border-blue-900">
+                <h4 className="font-medium flex items-center gap-2 text-red-600 dark:text-red-400">
+                  <AlertTriangle size={14} />
+                  Risk Indicators
+                </h4>
+                <ul className="list-disc list-inside pl-2 space-y-1 mt-1 text-slate-700 dark:text-slate-300">
+                  <li><span className="text-red-600 dark:text-red-400 font-medium">High-risk countries</span>: Traffic from suspicious geolocations</li>
+                  <li><span className="text-amber-600 dark:text-amber-400 font-medium">VPN/TOR</span>: Anonymous or encrypted traffic</li>
+                  <li><span className="text-purple-600 dark:text-purple-400 font-medium">Multiple occurrences</span>: High volume from same source</li>
+                </ul>
+              </div>
+            </div>
+            <p className="text-xs italic mt-2 text-slate-600 dark:text-slate-400">
+              Unusual patterns, high volumes from specific sources, or connections to high-risk countries may indicate security concerns that require investigation.
+            </p>
+          </div>
+        )}
+      </Card>
 
       {loading ? (
         <div className="space-y-4">
@@ -336,11 +388,11 @@ export default function PacketLogs() {
         </div>
       ) : (
         <>
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden border-slate-200 dark:border-slate-800">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-slate-50 dark:bg-slate-900/40">
                 <TableRow>
-                  <TableHead>ID</TableHead>
+                  <TableHead className="w-[60px]">ID</TableHead>
                   <TableHead>Process</TableHead>
                   <TableHead>Time</TableHead>
                   <TableHead>Source IP</TableHead>
@@ -353,18 +405,18 @@ export default function PacketLogs() {
               <TableBody>
                 {logs.length > 0 ? (
                   logs.map((log) => (
-                    <TableRow key={log.id} className="hover:bg-muted/50">
-                      <TableCell className="font-medium">{log.id}</TableCell>
+                    <TableRow key={log.id} className="hover:bg-blue-50/50 dark:hover:bg-blue-950/20">
+                      <TableCell className="font-medium text-slate-500">{log.id}</TableCell>
                       <TableCell>
                         {log.process_name ? (
                           <div className="relative group w-full cursor-help">
-                            <span className="underline decoration-dotted">
+                            <span className="underline decoration-dotted text-indigo-600 dark:text-indigo-400 font-medium">
                               {log.process_name}
                             </span>
                             <div className="absolute z-50 invisible group-hover:visible bg-popover text-popover-foreground p-3 rounded shadow-lg w-72 mt-2 border border-border right-0 sm:left-0 sm:right-auto">
                               {log.process_path ? (
                                 <div className="break-words mb-2">
-                                  <span className="font-semibold">Path:</span>{" "}
+                                  <span className="font-semibold text-blue-700 dark:text-blue-300">Path:</span>{" "}
                                   {log.process_path}
                                 </div>
                               ) : (
@@ -372,8 +424,8 @@ export default function PacketLogs() {
                               )}
                               {log.process_file_hash ? (
                                 <div className="break-all">
-                                  <span className="font-semibold">Hash:</span>{" "}
-                                  {log.process_file_hash}
+                                  <span className="font-semibold text-blue-700 dark:text-blue-300">Hash:</span>{" "}
+                                  <span className="text-emerald-700 dark:text-emerald-400 font-mono text-xs">{log.process_file_hash}</span>
                                 </div>
                               ) : (
                                 <div className="text-muted-foreground italic">No file hash available</div>
@@ -386,10 +438,13 @@ export default function PacketLogs() {
                           </span>
                         )}
                       </TableCell>
-                      <TableCell>{formatDate(log.captured_at)}</TableCell>
+                      <TableCell className="text-slate-600 dark:text-slate-400">{formatDate(log.captured_at)}</TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          {log.source_ip.address}
+                          <div className="flex items-center">
+                            <Globe className="h-3.5 w-3.5 mr-1 text-slate-500" />
+                            <span className="font-medium text-slate-800 dark:text-slate-200">{log.source_ip.address}</span>
+                          </div>
                           <IPAddressLabels
                             sourceIP={log.source_ip}
                             isRiskCountry={
@@ -405,25 +460,39 @@ export default function PacketLogs() {
                           />
                         </div>
                       </TableCell>
-                      <TableCell>{log.destination_ip.address}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <Globe className="h-3.5 w-3.5 mr-1 text-slate-500" />
+                          <span className="font-medium text-slate-800 dark:text-slate-200">{log.destination_ip.address}</span>
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium">
-                            {log.device.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1.5">
+                            <div className={`w-2 h-2 rounded-full ${log.device.status === 1 ? 'bg-green-500' : 'bg-amber-500'}`}></div>
+                            <span className="text-sm font-medium">
+                              {log.device.name}
+                            </span>
+                          </div>
+                          <span className="text-xs text-muted-foreground ml-3.5">
                             {log.device.os}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>{log.size} bytes</TableCell>
+                      <TableCell>
+                        <span className={`font-medium ${
+                          log.size > 10000 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-600 dark:text-slate-400'
+                        }`}>
+                          {log.size.toLocaleString()} bytes
+                        </span>
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="text-sm font-semibold">
+                          <span className={`text-sm font-semibold px-1.5 py-0.5 rounded ${getPortClass(log.source_port)}`}>
                             {log.source_port}
                           </span>
-                          <span>-&gt;</span>
-                          <span className="text-sm font-semibold">
+                          <span className="text-slate-400 mx-auto">→</span>
+                          <span className={`text-sm font-semibold px-1.5 py-0.5 rounded ${getPortClass(log.destination_port)}`}>
                             {log.destination_port}
                           </span>
                         </div>
@@ -512,4 +581,17 @@ export default function PacketLogs() {
       )}
     </div>
   );
+}
+
+// Helper function to determine port class based on port number
+function getPortClass(port: number): string {
+  // Common ports get specific colors
+  if ([80, 443].includes(port)) return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"; // HTTP/HTTPS
+  if ([21, 22, 23].includes(port)) return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"; // FTP/SSH/Telnet
+  if ([25, 110, 143, 587, 993].includes(port)) return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"; // Email
+  if ([53].includes(port)) return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"; // DNS
+  if (port < 1024) return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300"; // Other well-known ports
+  
+  // High ports (ephemeral)
+  return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300";
 }
