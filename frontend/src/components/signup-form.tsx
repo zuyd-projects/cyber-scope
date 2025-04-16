@@ -14,6 +14,7 @@ import {
 } from "@cyberscope/components/ui/card";
 import { Input } from "@cyberscope/components/ui/input";
 import { Label } from "@cyberscope/components/ui/label";
+import { PolicyNotice } from "@cyberscope/components/ui/policy-notice"
 
 export function SignupForm({
   className,
@@ -111,9 +112,7 @@ export function SignupForm({
           </form>
         </CardContent>
       </Card>
-      <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary  ">
-        By signing up, you agree to our <Link href="#" prefetch={true}>Privacy Policy</Link>.
-      </div>
+      <PolicyNotice />
     </div>
   );
 }
