@@ -151,9 +151,9 @@ export function ChartsSection({ inbound, outbound, forceShowEmptyCharts }: Chart
             <h2 className="text-xl font-bold">Inbound IP Addresses by Country</h2>
             <button
               onClick={() => downloadCSV(groupSmallCountries(inbound), "inbound.csv")}
-              className="text-sm px-3 py-1 border rounded text-blue-600 border-blue-600 hover:bg-blue-50"
+              className="text-sm h-[35px] px-3 py-1 border rounded text-blue-600 border-blue-600 hover:bg-blue-50"
             >
-              Download CSV
+              Download
             </button>
           </div>
           <div className="flex justify-center w-full">
@@ -171,9 +171,9 @@ export function ChartsSection({ inbound, outbound, forceShowEmptyCharts }: Chart
             <h2 className="text-xl font-bold">Outbound IP Addresses by Country</h2>
             <button
               onClick={() => downloadCSV(outbound, "outbound.csv")}
-              className="text-sm px-3 py-1 border rounded text-blue-600 border-blue-600 hover:bg-blue-50"
+              className="text-sm h-[35px] px-3 py-1 border rounded text-blue-600 border-blue-600 hover:bg-blue-50"
             >
-              Download CSV
+              Download
             </button>
           </div>
           <div className="flex justify-center w-full">
