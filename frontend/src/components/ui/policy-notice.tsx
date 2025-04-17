@@ -9,7 +9,6 @@ export function PolicyNotice() {
       <Link
         href="/policy"
         prefetch={true}
-        target="_blank"
         rel="noopener noreferrer"
         className="underline underline-offset-4 cursor-pointer"
       >
