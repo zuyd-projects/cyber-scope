@@ -7,9 +7,9 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@cyberscope/components/ui/sidebar";
-import FirewallTab from "../../components/deployment/FirewallTab";
-import WindowsTab from "../../components/deployment/WindowsTab";
-import SSHTab from "../../components/deployment/SSHTab";
+import FirewallTab from "../../components/Installation/FirewallTab";
+import WindowsTab from "../../components/Installation/WindowsTab";
+import SSHTab from "../../components/Installation/SSHTab";
 
 export default function Page() {
   const [activeTab, setActiveTab] = useState<"firewall" | "windows" | "linux">("windows");

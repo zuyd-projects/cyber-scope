@@ -62,13 +62,6 @@ export default function FirewallTab() {
               C:\Program Files\Cyberscope\FirewallCollector
             </code>
           </li>
-          <li>
-            <span className="font-medium">4.</span> Run the{" "}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">
-              install.bat
-            </code>{" "}
-            file as administrator
-          </li>
         </ol>
       </div>
 

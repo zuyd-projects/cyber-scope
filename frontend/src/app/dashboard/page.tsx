@@ -513,6 +513,7 @@ export default function Page() {
                       </p>
                     </div>
                   )}
+                  <span>CyberScope uses the IP2Location LITE database for <a href="https://lite.ip2location.com">IP geolocation</a>.</span>
               </div>
             )}
           </SidebarInset>

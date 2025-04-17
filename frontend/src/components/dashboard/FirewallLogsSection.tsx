@@ -76,6 +76,11 @@ export function FirewallLogsSection({
       "Action",
       "Country Code",
       "Risk Country",
+      "IP is Blocked",
+      "IP is Local",
+      "IP is VPN",
+      "IP is Datacenter",
+      "IP is TOR Exit Node",
     ]
   
     const rows = filteredLogs
@@ -104,6 +109,11 @@ export function FirewallLogsSection({
           log.action,
           countryCode,
           isRisk,
+          log.source_ip.is_blocked ? "YES" : "NO",
+          log.source_ip.is_local ? "YES" : "NO",
+          log.source_ip.is_vpn ? "YES" : "NO",
+          log.source_ip.is_datacenter ? "YES" : "NO",
+          log.source_ip.is_tor_exit_node ? "YES" : "NO",
         ]
       })
   

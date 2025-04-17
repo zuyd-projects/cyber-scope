@@ -97,23 +97,33 @@ export default function Page() {
   );
 
   // Filter connections by country for display
-  const filteredInboundConnections = validInboundConnections.filter((conn) =>
-    countryFilter
-      ? conn.country_name
-          ?.toLowerCase()
-          .includes(countryFilter.toLowerCase()) ||
-        conn.country_code?.toLowerCase().includes(countryFilter.toLowerCase())
-      : true
-  );
+  const filteredInboundConnections = validInboundConnections.filter((conn) => {
+    if (!countryFilter) return true;
+    
+    const lowerFilter = countryFilter.toLowerCase();
+    
+    // For country codes (2 chars), check for exact match
+    if (countryFilter.length === 2) {
+      return conn.country_code?.toLowerCase() === lowerFilter;
+    }
+    
+    // For longer search terms, search as substring in country name
+    return conn.country_name?.toLowerCase().includes(lowerFilter);
+  });
 
-  const filteredOutboundConnections = validOutboundConnections.filter((conn) =>
-    countryFilter
-      ? conn.country_name
-          ?.toLowerCase()
-          .includes(countryFilter.toLowerCase()) ||
-        conn.country_code?.toLowerCase().includes(countryFilter.toLowerCase())
-      : true
-  );
+  const filteredOutboundConnections = validOutboundConnections.filter((conn) => {
+    if (!countryFilter) return true;
+    
+    const lowerFilter = countryFilter.toLowerCase();
+    
+    // For country codes (2 chars), check for exact match
+    if (countryFilter.length === 2) {
+      return conn.country_code?.toLowerCase() === lowerFilter;
+    }
+    
+    // For longer search terms, search as substring in country name
+    return conn.country_name?.toLowerCase().includes(lowerFilter);
+  });
 
   // Calculate total connections from the valid data (not filtered by user input)
   const originalTotalInbound = validInboundConnections.reduce(
