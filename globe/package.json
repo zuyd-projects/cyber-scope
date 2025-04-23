@@ -19,7 +19,7 @@
     "laravel-echo": "^2.0.2",
     "pusher-js": "^8.4.0",
     "solar-calculator": "^0.3.0",
-    "three": "^0.175.0"
+    "three": "^0.176.0"
   },
   "devDependencies": {
     "vite": "^6.2.5"
