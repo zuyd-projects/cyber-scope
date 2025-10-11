@@ -52,7 +52,7 @@ RUN composer install --no-dev --prefer-dist
 
 
 # BUILD CLI
-FROM php:8.3-alpine AS cli
+FROM php:8.5.0RC2-alpine AS cli
 
 ARG PHP_EXTS
 ARG PHP_PECL_EXTS
